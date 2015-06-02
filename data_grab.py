@@ -1,4 +1,5 @@
-import pickle
+from sklearn.externals import joblib
+
 import numpy as np
 import pandas as pd
 
@@ -104,17 +105,32 @@ def flatten_reviews(label_df, reviews):
 
 def train_and_save(reviews, train_labels, submission):
     train_text = flatten_reviews(train_labels, reviews)
-    with open('flattened_reviews_train_text.pkl', 'wb') as f:
-        pickle.dump(train_text, f)
     test_text = flatten_reviews(submission, reviews)
-    with open('flattened_reviews_test_text.pkl', 'wb') as f:
-        pickle.dump(test_text, f)
+    joblib.dump(train_text, 'flattened_train_reviews.pkl')
+    joblib.dump(test_text, 'flattened_test_reviews.pkl')
+    # with open('flattened_reviews_train_text.pkl', 'wb') as f:
+    #     pickle.dump(train_text, f)
+    # with open('flattened_reviews_test_text.pkl', 'wb') as f:
+    #     pickle.dump(test_text, f)
     return train_text, test_text
 
 
 def load_flattened_reviews():
-    with open('flattened_reviews_train_text.pkl') as f:
-        train_text = pickle.load(f)
-    with open('flattened_reviews_test_text.pkl') as f:
-        test_text = pickle.load(f)
+    train_text = joblib.load('flattened_train_reviews.pkl')
+    test_text = joblib.load('flattened_test_reviews.pkl')
+    # with open('flattened_reviews_train_text.pkl') as f:
+    #     train_text = pickle.load(f)
+    # with open('flattened_reviews_test_text.pkl') as f:
+    #     test_text = pickle.load(f)
     return train_text, test_text
+
+
+def main():
+    reviews = get_reviews()
+    train_labels, train_targets = get_response()
+    submission = get_submission()
+    train_and_save(reviews, train_labels, submission)
+
+
+if __name__ == '__main__':
+    main()

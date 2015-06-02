@@ -128,9 +128,9 @@ def make_model(X, y):
 # reviews, train_labels, submission = get_data()
 
 # # initial tfidf data grab
-train_text, test_text = data_grab.load_flattened_reviews()
-vec, train_tfidf = text_processors.tfidf_and_save(train_text)
-# train_tfidf = text_processors.load_tfidf_matrix()
+
+
+train_tfidf = text_processors.load_tfidf_matrix()
 train_labels, train_targets = data_grab.get_response()
 
 model = make_model(train_tfidf, train_targets)

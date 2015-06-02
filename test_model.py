@@ -23,11 +23,12 @@ from sklearn.cross_validation import cross_val_score
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import BaggingClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
-exhaust_cursor = pymongo.cursor.CursorType.EXHAUST
-client = pymongo.MongoClient()
-db = client.hygiene
+# exhaust_cursor = pymongo.cursor.CursorType.EXHAUST
+# client = pymongo.MongoClient()
+# db = client.hygiene
 
 n_jobs = -1  # -1 for full blast when not using computer
 
@@ -62,6 +63,7 @@ def griddy(pipeline):
     parameters = {
         # 'vect__max_df': (0.5, 0.75, 1.0),
         # 'vect__max_features': (None, 5000, 10000, 50000),
+        # sublinear tfidf vectorizer
         # 'vect__ngram_range': ((1, 1), (1, 2), (1, 3)),  # words or bigrams
         # 'tfidf__use_idf': (True, False),
         # 'tfidf__norm': ('l1', 'l2'),
@@ -86,8 +88,16 @@ def griddy(pipeline):
         print "\t%s: %r" % (param_name, best_parameters[param_name])
 
 
-def fit_and_submit():
-    pass
+def fit_and_submit(X, pipeline, filename):
+    # predict the counts for the test set
+    predictions = pipeline.predict(X)
+    # clip the predictions so they are all greater than or equal to zero
+    # since we can't have negative counts of violations
+    predictions = np.clip(predictions, 0, np.inf)
+    # write the submission file
+    new_submission = submission.copy()
+    new_submission.iloc[:, -3:] = predictions.astype(int)
+    new_submission.to_csv(filename)
 
 
 def make_feature_vis():
@@ -99,42 +109,51 @@ def contest_metric():
             weights=metrics.KEEPING_IT_CLEAN_WEIGHTS))
 
 
-def score_model(X, y, model=None, pipe='text'):
-    # set classifier to test
-    if model == 'ols':
-        classifier = LinearRegression()
-    if model == 'bagging':
-        classifier = BaggingClassifier(n_estimators=100)
-    if model == 'forest':
-        classifier = RandomForestClassifier(n_estimators=100)
-    if not model:
-        print('no model specified. error inbound.')
-
-    if pipe == 'text':
-        pipeline = Pipeline([
-                # ('scaler', Normalizer()),
-                ('clf', classifier),
-            ])
-
-    if pipe == 'numeric':
-        # can use with text if convert X to dense with .toarray() but is super heavy on ram
-        pipeline = Pipeline([
-                ('scaler', StandardScaler()),
-                ('clf', classifier),
-            ])
-
+def score_model(X, y, pipeline):
     scores = cross_val_score(pipeline, X, y, cv=5, n_jobs=n_jobs, verbose=1)
     print("Score of {} +/- {}").format(np.mean(scores), np.std(scores))
 
 
+def test(X, y, pipeline):
+    clf = pipeline.fit(X, y)
+    print("Score of {}".format(clf.score(X, y)))
+
+
+# set classifier to test
+estimator = LinearRegression()
+# estimator = BaggingClassifier(n_estimators=100)
+# estimator = RandomForestClassifier(n_estimators=100)
+
+# pipelines
+pipeline = Pipeline([
+        ('tfidf', TfidfVectorizer(stop_words='english')),
+        # ('scaler', Normalizer()),
+        ('est', estimator),
+    ])
+
+# can use with text if convert X to dense with .toarray() but is super heavy on ram
+# pipeline = Pipeline([
+#         ('scaler', StandardScaler()),
+#         ('clf', estimator),
+#     ])
+
 t0 = time()
-# train_text, test_text = data_grab.load_flattened_reviews()
-train_tfidf = text_processors.load_tfidf_matrix()
-print(train_tfidf.shape)
-# vec, train_tfidf = text_processors.tfidf_and_save(train_text)
 train_labels, train_targets = data_grab.get_response()
-score_model(train_tfidf.toarray(), train_targets, 'ols', 'text')
-print("{} seconds elapsed.".format(time() - t0))
+
+train_text, test_text = data_grab.load_flattened_reviews()
+score_model(train_text, train_targets, pipeline)
+test(train_text, train_targets, pipeline)
+
+
+# # quick pipe - bypass the tfidf vectorizer
+# train_tfidf = text_processors.load_tfidf_matrix()
+# test(train_tfidf, train_targets, estimator)
+
+
+print("{} seconds elapsed.".format(int(time() - t0)))
+
+# vec = load_tfidf_vectorizer()
+# fit_and_submit(test_text, pipeline, 'ols_tfidf_5000.csv')
 
 # contest_metric()
 
