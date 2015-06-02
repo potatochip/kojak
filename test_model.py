@@ -1,6 +1,10 @@
 import pymongo
+import metrics
+import data_grab
+import text_processors
 
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -12,18 +16,43 @@ from sklearn.externals import joblib
 
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
+from sklearn.preprocessing import Normalizer
 from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import cross_val_score
 
+from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import BaggingClassifier
+from sklearn.ensemble import RandomForestClassifier
+
 
 exhaust_cursor = pymongo.cursor.CursorType.EXHAUST
 client = pymongo.MongoClient()
 db = client.hygiene
 
+n_jobs = -1  # -1 for full blast when not using computer
+
+
+def static_vars(**kwargs):
+    def decorate(func):
+        for k in kwargs:
+            setattr(func, k, kwargs[k])
+        return func
+    return decorate
+
+
+@static_vars(counter=0)
+def update_pbar():
+    update_pbar.counter += 1
+    pbar.update(update_pbar.counter)
+
 
 def feature_the_whole_enchilada():
     # grabbing response and everything provided as a feature from database
+    target = db.target
+    return features, response
+
+
+def feature_review_text():
     target = db.target
     return features, response
 
@@ -41,7 +70,7 @@ def griddy(pipeline):
         # 'clf__n_iter': (10, 50, 80),
     }
 
-    grid_search = GridSearchCV(pipeline, parameters, n_jobs=3, verbose=1)
+    grid_search = GridSearchCV(pipeline, parameters, n_jobs=n_jobs, verbose=1)
     print "Performing grid search..."
     print "pipeline:", [name for name, _ in pipeline.steps]
     print "parameters:"
@@ -65,17 +94,48 @@ def make_feature_vis():
     pass
 
 
-# set classifier to test
-classifier = BaggingClassifier(n_estimators=100)
+def contest_metric():
+    print(metrics.weighted_rmsle(numpy_array_predictions, numpy_array_actual_values,
+            weights=metrics.KEEPING_IT_CLEAN_WEIGHTS))
 
-X, y = feature_text_only()
 
-pipeline = Pipeline([
-        ('scaler', StandardScaler()),
-        ('clf', classifier)
-    ])
+def score_model(X, y, model=None, pipe='text'):
+    # set classifier to test
+    if model == 'ols':
+        classifier = LinearRegression()
+    if model == 'bagging':
+        classifier = BaggingClassifier(n_estimators=100)
+    if model == 'forest':
+        classifier = RandomForestClassifier(n_estimators=100)
+    if not model:
+        print('no model specified. error inbound.')
 
-scores = cross_val_score(pipeline, X, y, cv=5, n_jobs=-1, verbose=2)
-print("Score of {} +/- {}").format(np.mean(scores), np.std(scores))
+    if pipe == 'text':
+        pipeline = Pipeline([
+                # ('scaler', Normalizer()),
+                ('clf', classifier),
+            ])
+
+    if pipe == 'numeric':
+        # can use with text if convert X to dense with .toarray() but is super heavy on ram
+        pipeline = Pipeline([
+                ('scaler', StandardScaler()),
+                ('clf', classifier),
+            ])
+
+    scores = cross_val_score(pipeline, X, y, cv=5, n_jobs=n_jobs, verbose=1)
+    print("Score of {} +/- {}").format(np.mean(scores), np.std(scores))
+
+
+t0 = time()
+# train_text, test_text = data_grab.load_flattened_reviews()
+train_tfidf = text_processors.load_tfidf_matrix()
+print(train_tfidf.shape)
+# vec, train_tfidf = text_processors.tfidf_and_save(train_text)
+train_labels, train_targets = data_grab.get_response()
+score_model(train_tfidf.toarray(), train_targets, 'ols', 'text')
+print("{} seconds elapsed.".format(time() - t0))
+
+# contest_metric()
 
 # save scores to csv

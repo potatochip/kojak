@@ -2,3 +2,7 @@
 data/
 *.csv
 *.pkl
+sftp-config.json
+tfidf_array_5000
+tfidf_vectorizer_5000
+word2vec_model
