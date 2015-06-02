@@ -10,14 +10,12 @@ def load_matrix(filename):
 
 
 def tfidf_and_save(train_text, params=None):
-    # create a TfidfVectorizer object with english stop words
     vec = TfidfVectorizer(stop_words='english')
+    train_tfidf = vec.fit_transform(train_text)
     joblib.dump(vec, 'tfidf_vectorizer_'+str(params))
+    joblib.dump(train_tfidf, 'tfidf_array_'+str(params))
     # with open('tfidf_vectorizer_'+str(params), 'wb') as f:
     #     pickle.dump(vec, f)
-    # create the TfIdf feature matrix from the raw text
-    train_tfidf = vec.fit_transform(train_text)
-    joblib.dump(train_tfidf, 'tfidf_array_'+str(params))
     # with open('tfidf_array_'+str(params), 'wb') as f:
     #     pickle.dump(train_tfidf, f)
     return vec, train_tfidf

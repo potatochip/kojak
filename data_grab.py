@@ -106,8 +106,8 @@ def flatten_reviews(label_df, reviews):
 def train_and_save(reviews, train_labels, submission):
     train_text = flatten_reviews(train_labels, reviews)
     test_text = flatten_reviews(submission, reviews)
-    joblib.dump(train_text, 'flattened_train_reviews.pkl')
-    joblib.dump(test_text, 'flattened_test_reviews.pkl')
+    joblib.dump(train_text, 'flattened_train_reviews')
+    joblib.dump(test_text, 'flattened_test_reviews')
     # with open('flattened_reviews_train_text.pkl', 'wb') as f:
     #     pickle.dump(train_text, f)
     # with open('flattened_reviews_test_text.pkl', 'wb') as f:

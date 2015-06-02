@@ -130,7 +130,7 @@ def make_model(X, y):
 # # initial tfidf data grab
 
 
-train_tfidf = text_processors.load_tfidf_matrix()
+train_tfidf = text_processors.load_tfidf_matrix(params=5000)
 train_labels, train_targets = data_grab.get_response()
 
 model = make_model(train_tfidf, train_targets)

@@ -1,6 +1,8 @@
+import logging
 import pymongo
 import metrics
 import data_grab
+import sendMessage
 import text_processors
 
 import numpy as np
@@ -20,11 +22,17 @@ from sklearn.preprocessing import Normalizer
 from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import cross_val_score
 
-from sklearn.linear_model import LinearRegression
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import BaggingClassifier
+from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+
+LOG_FILENAME = 'test_model.log'
+logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # exhaust_cursor = pymongo.cursor.CursorType.EXHAUST
 # client = pymongo.MongoClient()
@@ -33,32 +41,27 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 n_jobs = -1  # -1 for full blast when not using computer
 
 
-def static_vars(**kwargs):
-    def decorate(func):
-        for k in kwargs:
-            setattr(func, k, kwargs[k])
-        return func
-    return decorate
+def logPrint(message):
+    print(message)
+    logger.info(message)
 
 
-@static_vars(counter=0)
-def update_pbar():
-    update_pbar.counter += 1
-    pbar.update(update_pbar.counter)
-
-
-def feature_the_whole_enchilada():
-    # grabbing response and everything provided as a feature from database
+def features_the_whole_enchilada():
+    # grabbing everything
     target = db.target
     return features, response
 
 
-def feature_review_text():
-    target = db.target
-    return features, response
+def features_review_text():
+    # # quick pipe - bypass the tfidf vectorizer
+    tfidf_matrix = text_processors.load_tfidf_matrix(params=None)
+    print("TFIDF matrix acquired.")
+    train_labels, train_targets = data_grab.get_response()
+    print("Targets loaded.")
+    return tfidf_matrix, train_targets
 
 
-def griddy(pipeline):
+def griddy(X, y, pipeline):
     # get best params with cross fold validation for both the feature extraction and the classifier
     parameters = {
         # 'vect__max_df': (0.5, 0.75, 1.0),
@@ -95,66 +98,77 @@ def fit_and_submit(X, pipeline, filename):
     # since we can't have negative counts of violations
     predictions = np.clip(predictions, 0, np.inf)
     # write the submission file
-    new_submission = submission.copy()
+    new_submission = data_grab.get_submission().copy()
     new_submission.iloc[:, -3:] = predictions.astype(int)
     new_submission.to_csv(filename)
+    train_labels, train_targets = data_grab.get_response()
+    print("Drivendata score of {}".format(contest_metric(predictions, train_targets)))
 
 
 def make_feature_vis():
     pass
 
 
-def contest_metric():
-    print(metrics.weighted_rmsle(numpy_array_predictions, numpy_array_actual_values,
-            weights=metrics.KEEPING_IT_CLEAN_WEIGHTS))
+def contest_metric(numpy_array_predictions, numpy_array_actual_values):
+    return metrics.weighted_rmsle(numpy_array_predictions, numpy_array_actual_values,
+            weights=metrics.KEEPING_IT_CLEAN_WEIGHTS)
 
 
 def score_model(X, y, pipeline):
-    scores = cross_val_score(pipeline, X, y, cv=5, n_jobs=n_jobs, verbose=1)
-    print("Score of {} +/- {}").format(np.mean(scores), np.std(scores))
+    scores = cross_val_score(pipeline, X, y, cv=3, n_jobs=n_jobs, verbose=1)
+    logPrint("Score of {} +/- {}").format(np.mean(scores), np.std(scores))
 
 
-def test(X, y, pipeline):
-    clf = pipeline.fit(X, y)
-    print("Score of {}".format(clf.score(X, y)))
+def score_multiple(X, y, estimator_list):
+    for estimator in estimator_list:
+        pipeline = Pipeline([
+            # ('tfidf', TfidfVectorizer(stop_words='english')),
+            # ('scaler', Normalizer()),
+            ('est', estimator),
+        ])
+        logPrint("Scoring {}".format(str(pipeline)))
+        score_model(X, y, pipeline)
 
 
-# set classifier to test
-estimator = LinearRegression()
-# estimator = BaggingClassifier(n_estimators=100)
-# estimator = RandomForestClassifier(n_estimators=100)
-
-# pipelines
-pipeline = Pipeline([
-        ('tfidf', TfidfVectorizer(stop_words='english')),
+def score_single(X, y, estimator):
+    pipeline = Pipeline([
+        # ('tfidf', TfidfVectorizer(stop_words='english')),
         # ('scaler', Normalizer()),
         ('est', estimator),
     ])
+    # # can use with text if convert X to dense with .toarray() but is super heavy on ram
+    # pipeline = Pipeline([
+    #         ('scaler', StandardScaler()),
+    #         ('clf', estimator),
+    # ])
+    score_model(X, y, pipeline)
 
-# can use with text if convert X to dense with .toarray() but is super heavy on ram
-# pipeline = Pipeline([
-#         ('scaler', StandardScaler()),
-#         ('clf', estimator),
-#     ])
+
+# set classifiers to test
+estimator = LinearRegression(normalize=True)
+# estimator = BaggingClassifier(n_estimators=100)
+# estimator = RandomForestClassifier(n_estimators=100)
+
+estimator_list = [LinearRegression(normalize=True),
+                  BaggingClassifier(),
+                  RandomForestClassifier(),
+                  MultinomialNB(),
+                  SGDClassifier()]
 
 t0 = time()
-train_labels, train_targets = data_grab.get_response()
+features, response = features_review_text()
+print(features.shape)
+# score_single(features, response, estimator)
+score_multiple(features, response, estimator_list)
+t1 = time()
+print("{} seconds elapsed.".format(int(t1 - t0)))
 
-train_text, test_text = data_grab.load_flattened_reviews()
-score_model(train_text, train_targets, pipeline)
-test(train_text, train_targets, pipeline)
+sendMessage.doneTextSend(t0, t1, 'test_model')
 
-
-# # quick pipe - bypass the tfidf vectorizer
-# train_tfidf = text_processors.load_tfidf_matrix()
-# test(train_tfidf, train_targets, estimator)
-
-
-print("{} seconds elapsed.".format(int(time() - t0)))
-
-# vec = load_tfidf_vectorizer()
+# # create submission file
+# train_text, test_text = data_grab.load_flattened_reviews()
 # fit_and_submit(test_text, pipeline, 'ols_tfidf_5000.csv')
 
-# contest_metric()
 
+# contest_metric()
 # save scores to csv

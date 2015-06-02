@@ -2,7 +2,10 @@
 data/
 *.csv
 *.pkl
+*.npy
 sftp-config.json
-tfidf_array_5000
-tfidf_vectorizer_5000
+tfidf_array_*
+tfidf_vectorizer_*
 word2vec_model
+sendMessage.py
+sendMessage.pyc
