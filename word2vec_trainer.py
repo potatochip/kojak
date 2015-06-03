@@ -44,4 +44,4 @@ def tokenize(text, stemmed=True):
 text = tokenize(' '.join([i['text'] for i in cursor]))
 
 model = gensim.models.Word2Vec(text, workers=3, size=200, min_count=2)
-model.save('word2vec_model')
+model.save('models/word2vec_model')

@@ -97,10 +97,11 @@ def fit_and_submit(X, pipeline, filename):
     # clip the predictions so they are all greater than or equal to zero
     # since we can't have negative counts of violations
     predictions = np.clip(predictions, 0, np.inf)
+    print predictions
     # write the submission file
     new_submission = data_grab.get_submission().copy()
     new_submission.iloc[:, -3:] = predictions.astype(int)
-    new_submission.to_csv(filename)
+    new_submission.to_csv('predictions/'+filename)
     train_labels, train_targets = data_grab.get_response()
     print("Drivendata score of {}".format(contest_metric(predictions, train_targets)))
 
@@ -121,6 +122,7 @@ def score_model(X, y, pipeline):
 
 def score_multiple(X, y, estimator_list):
     for estimator in estimator_list:
+        t0 = time()
         pipeline = Pipeline([
             # ('tfidf', TfidfVectorizer(stop_words='english')),
             # ('scaler', Normalizer()),
@@ -128,6 +130,8 @@ def score_multiple(X, y, estimator_list):
         ])
         logPrint("Scoring {}".format(str(pipeline)))
         score_model(X, y, pipeline)
+        t1 = time()
+        sendMessage.doneTextSend(t0, t1, estimator)
 
 
 def score_single(X, y, estimator):
@@ -145,7 +149,7 @@ def score_single(X, y, estimator):
 
 
 # set classifiers to test
-estimator = LinearRegression(normalize=True)
+estimator = LinearRegression()
 # estimator = BaggingClassifier(n_estimators=100)
 # estimator = RandomForestClassifier(n_estimators=100)
 
@@ -159,16 +163,24 @@ t0 = time()
 features, response = features_review_text()
 print(features.shape)
 # score_single(features, response, estimator)
-score_multiple(features, response, estimator_list)
+# score_multiple(features, response, estimator_list)
 t1 = time()
 print("{} seconds elapsed.".format(int(t1 - t0)))
 
 sendMessage.doneTextSend(t0, t1, 'test_model')
 
 # # create submission file
-# train_text, test_text = data_grab.load_flattened_reviews()
-# fit_and_submit(test_text, pipeline, 'ols_tfidf_5000.csv')
+train_text, test_text = data_grab.load_flattened_reviews()
+fit_and_submit(test_text, estimator, 'ols_tfidf_None.csv')
 
 
 # contest_metric()
 # save scores to csv
+
+# text_clf = Pipeline([('vect', CountVectorizer(tokenizer=tokenize, stop_words='english',
+#                                                 max_df=0.8, max_features=200000, min_df=0.2,
+#                                                 ngram_range=(1, 3), use_idf=True)),
+#                     ('tfidf', TfidfTransformer()),
+#                     ('clf', SGDClassifier(loss='hinge', penalty='l2',
+#                                             alpha=1e-3, n_iter=5, random_state=42)),
+#                     ])

@@ -1,11 +1,10 @@
-*.
+.*
 data/
+models/
+predictions/
 *.csv
 *.pkl
 *.npy
 sftp-config.json
-tfidf_array_*
-tfidf_vectorizer_*
-word2vec_model
 sendMessage.py
 sendMessage.pyc
