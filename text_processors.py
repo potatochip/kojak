@@ -1,5 +1,6 @@
 import sendMessage
 import nltk
+import json
 import re
 import pickle
 from progressbar import ProgressBar
@@ -14,7 +15,7 @@ stopwords = set(nltk.corpus.stopwords.words('english'))
 stemmer = SnowballStemmer("english")
 
 
-def tokenize(text, spellcheck=True, stem=False, lemmatize=True):
+def tokenize(text, spellcheck=False, stem=False, lemmatize=True):
     # lowercase, remove non-alphas and punctuation
     b = TextBlob(text)
     if spellcheck:
@@ -35,20 +36,20 @@ def tokenize(text, spellcheck=True, stem=False, lemmatize=True):
 
 
 def preprocess_text():
-    # grab text
+    df = data_grab.load_full_features()
     tokened_list = []
-    pbar = ProgressBar(maxval=).start()
-    for i, text in enumerate(texts):
+    pbar = ProgressBar(maxval=df.shape[0]).start()
+    for i, text in enumerate(df.review_text):
         tokens = tokenize(text)
         tokened_list.append(tokens)
         pbar.update(i)
-    with open('preprocessed_text.pkl', 'wb') as f:
-        pickle.dump(tokened_list, f)
+    with open('models/preprocessed_text.pkl', 'wb') as f:
+        json.dump(tokened_list, f)
     pbar.finish()
 
 
 def tfidf_and_save(train_text, params=None):
-    if not params: params = 'None'
+    if not params: params = 'base'
     vec = TfidfVectorizer(stop_words='english')
     train_tfidf = vec.fit_transform(train_text)
     joblib.dump(vec, 'models/tfidf_vectorizer_'+params)
@@ -57,7 +58,7 @@ def tfidf_and_save(train_text, params=None):
 
 
 def tfidf_custom_token_and_save(train_text, params='spell_lemma'):
-    if not params: params = 'None'
+    if not params: params = 'base'
     vec = TfidfVectorizer(tokenizer=tokenize)
     train_tfidf = vec.fit_transform(train_text)
     joblib.dump(vec, 'models/tfidf_custom_token_vectorizer_'+params)
@@ -66,25 +67,25 @@ def tfidf_custom_token_and_save(train_text, params='spell_lemma'):
 
 
 def load_tfidf_custom_token_matrix(params=None):
-    if not params: params = 'None'
+    if not params: params = 'base'
     train_tfidf = joblib.load('models/tfidf_custom_token_array_'+params)
     return train_tfidf
 
 
 def load_tfidf_custom_token_vectorizer(params=None):
-    if not params: params = 'None'
+    if not params: params = 'base'
     vec = joblib.load('models/tfidf_custom_token_vectorizer_'+params)
     return vec
 
 
 def load_tfidf_matrix(params=None):
-    if not params: params = 'None'
+    if not params: params = 'base'
     train_tfidf = joblib.load('models/tfidf_array_'+params)
     return train_tfidf
 
 
 def load_tfidf_vectorizer(params=None):
-    if not params: params = 'None'
+    if not params: params = 'base'
     vec = joblib.load('models/tfidf_vectorizer_'+params)
     return vec
 
@@ -96,8 +97,10 @@ def main():
     # vec, train_tfidf = tfidf_and_save(train_text)
 
     # get tfidf with custom tokenizer
-    train_text, test_text = data_grab.load_flattened_reviews()
-    vec, train_tfidf = tfidf_custom_token_and_save(train_text)
+    # train_text, test_text = data_grab.load_flattened_reviews()
+    # vec, train_tfidf = tfidf_custom_token_and_save(train_text)
+
+    preprocess_text()
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))

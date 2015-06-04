@@ -91,13 +91,13 @@ def griddy(X, y, pipeline):
         print "\t%s: %r" % (param_name, best_parameters[param_name])
 
 
-def fit_and_submit(X, pipeline, filename):
+def fit_and_submit(X_train, y_train, X_test, pipeline, filename):
     # predict the counts for the test set
-    predictions = pipeline.predict(X)
+    model =  pipeline.fit(X_train, y_train)
+    predictions = pipeline.predict(X_test)
     # clip the predictions so they are all greater than or equal to zero
     # since we can't have negative counts of violations
     predictions = np.clip(predictions, 0, np.inf)
-    print predictions
     # write the submission file
     new_submission = data_grab.get_submission().copy()
     new_submission.iloc[:, -3:] = predictions.astype(int)

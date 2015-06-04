@@ -48,8 +48,6 @@ def get_reviews():
     reviews['vote_useful'] = [i[1]['useful'] for i in reviews.votes.iteritems()]
 
     # drop redundant columns
-
-
     return reviews
 
 
@@ -108,11 +106,9 @@ def get_full_features():
     for i, row in id_map.iterrows():
         # get the Boston ID
         boston_id = row["restaurant_id"]
-
         # get the non-null Yelp IDs
         non_null_mask = ~pd.isnull(row.ix[1:])
         yelp_ids = row[1:][non_null_mask].values
-
         for yelp_id in yelp_ids:
             id_dict[yelp_id] = boston_id
 
@@ -121,78 +117,154 @@ def get_full_features():
     full_features.restaurant_id = full_features.restaurant_id.map(map_to_boston_ids)
 
     # drop restaurants not found in boston data
+    # print("Shape before dropping in feature grab: {}".format(full_features.shape))
     full_features = full_features[pd.notnull(full_features.restaurant_id)]
+    # print("Shape after dropping in feature grab: {}".format(full_features.shape))
 
-    training_response = pd.read_csv("data/train_labels.csv", index_col=None)
-    training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', '*', '**', '***']
+    # training_response = pd.read_csv("data/train_labels.csv", index_col=None)
+    # training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', '*', '**', '***']
 
+    # # convert date to datetime object
+    # training_response.inspection_date = pd.to_datetime(pd.Series(training_response.inspection_date))
+
+    # full_features_response = pd.merge(full_features, training_response, on='restaurant_id')
+
+    # # remove reviews and tips that occur after an inspection
+    # no_future = full_features_response[full_features_response.review_date < full_features_response.inspection_date]
+
+    # print(no_future.shape)
+
+    full_features.to_hdf('models/df_store.h5', 'full_features_df')
+    # no_future.to_hdf('models/df_store.h5', 'full_features_df')
+    # return no_future
+    return full_features
+
+
+def load_full_features():
+    df = pd.read_hdf('models/df_store.h5', 'full_features_df')
+    return df
+
+
+def transform_features(df):
+    # create number representing days passed between inspection date and review date
+    df['time_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
+
+    # df['vote_cool'] = [i[1]['cool'] for i in df.votes.iteritems()]
+    # df['vote_funny'] = [i[1]['funny'] for i in df.votes.iteritems()]
+    # df['vote_useful'] = [i[1]['useful'] for i in df.votes.iteritems()]
+    # df['review_year'] = df['review_date'].dt.year
+    # df['review_month'] = df['review_date'].dt.month
+    # df['review_day'] = df['review_date'].dt.day
+    # df['inspection_dayofweek'] = df.inspection_date.dt.dayofweek
+    # df['inspection_quarter'] = df.inspection_date.dt.quarter
+    # df['inspection_dayofyear'] = df.inspection_date.dt.dayofyear
+    # df['inspection_weekofyear'] = df.inspection_date.dt.weekofyear
+
+    df.to_hdf('models/df_store.h5', 'transformed_features_df')
+    return df
+
+
+def load_transformed_features():
+    df = pd.read_hdf('models/df_store.h5', 'transformed_features_df')
+    return df
+
+
+def make_feature_response(feature_df, response_df):
     # convert date to datetime object
-    training_response.inspection_date = pd.to_datetime(pd.Series(training_response.inspection_date))
+    response_df.inspection_date = pd.to_datetime(pd.Series(response_df.inspection_date))
+    # combine features and response
+    features_response = pd.merge(feature_df, response_df, on='restaurant_id')
 
-    full_features_response = pd.merge(full_features, training_response, on='restaurant_id')
+    # print("Shape before dropping in combined feature-response: {}".format(features_response.shape))
+    # drop restaurants not found in boston data
+    # features_response = features_response[pd.notnull(features_response.restaurant_id)]
+    # print("Shape after dropping in combined feature-response: {}".format(features_response.shape))
 
     # remove reviews and tips that occur after an inspection
-    no_future = full_features_response[full_features_response.inspection_date > full_features_response.review_date]
+    no_future = features_response[features_response.review_date < features_response.inspection_date]
 
-    print(no_future.shape)
+    # print("Shape after removing post-inspection reviews in combined feature-response : {}".format(no_future.shape))
 
     return no_future
 
 
-def transform_features():
-    df = get_full_features()
+def make_train_test():
+    full_features = get_full_features()
+    training_response = pd.read_csv("data/train_labels.csv", index_col=None)
+    training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', '*', '**', '***']
+    submission = pd.read_csv("data/SubmissionFormat.csv", index_col=None)
+    submission.columns = ['inspection_id', 'inspection_date', 'restaurant_id', '*', '**', '***']
+    # combine features and response
+    training_df = make_feature_response(full_features, training_response)
+    test_df = make_feature_response(full_features, submission)
 
-    df['vote_cool'] = [i[1]['cool'] for i in df.votes.iteritems()]
-    df['vote_funny'] = [i[1]['funny'] for i in df.votes.iteritems()]
-    df['vote_useful'] = [i[1]['useful'] for i in df.votes.iteritems()]
-    df['review_year'] = df['review_date'].dt.year
-    df['review_month'] = df['review_date'].dt.month
-    df['review_day'] = df['review_date'].dt.day
+    # transform dataframes
+    transformed_training_df = transform_features(training_df)
+    transformed_test_df = transform_features(test_df)
 
+    # convert restaurant_id's into numbers representing the restaurant then applying the same
+    # categories to the submission dataframe
+    restaurant_categories = pd.Categorical.from_array(transformed_training_df.restaurant_id)
+    transformed_training_df['restaurant_id_number'] = restaurant_categories.codes
+    transformed_test_df['restaurant_id_number'] = restaurant_categories.categories.get_indexer(transformed_test_df.restaurant_id)
 
-def flatten_reviews(label_df, reviews):
-    """
-        label_df: inspection dataframe with date, restaurant_id
-        reviews: dataframe of reviews
-
-        Returns all of the text of reviews previous to each
-        inspection listed in label_df.
-    """
-    reviews_dictionary = {}
-    N = len(label_df)
-
-    for i, (pid, row) in enumerate(label_df.iterrows()):
-        # we want to only get reviews for this restaurant that ocurred before the inspection
-        pre_inspection_mask = (reviews.date < row.date) & (reviews.restaurant_id == row.restaurant_id)
-
-        # pre-inspection reviews
-        pre_inspection_reviews = reviews[pre_inspection_mask]
-
-        # join the text
-        all_text = ' '.join(pre_inspection_reviews.text)
-
-        # store in dictionary
-        reviews_dictionary[pid] = all_text
-
-        if i % 2500 == 0:
-            print '{} out of {}'.format(i, N)
-
-    # return series in same order as the original data frame
-    return pd.Series(reviews_dictionary)[label_df.index]
+    # save dataframes
+    transformed_training_df.to_hdf('models/df_store.h5', 'transformed_training_df')
+    transformed_test_df.to_hdf('models/df_store.h5', 'transformed_test_df')
+    return transformed_training_df, transformed_test_df
 
 
-def train_and_save(reviews, train_labels, submission):
-    train_text = flatten_reviews(train_labels, reviews)
-    test_text = flatten_reviews(submission, reviews)
-    joblib.dump(train_text, 'models/flattened_train_reviews')
-    joblib.dump(test_text, 'models/flattened_test_reviews')
-    return train_text, test_text
+def load_dataframes():
+    # test refers to what is being submitted to the competition
+    # running cross_val_score on train only
+    train_df = pd.read_hdf('models/df_store.h5', 'transformed_training_df')
+    test_df = pd.read_hdf('models/df_store.h5', 'transformed_test_df')
+    return train_df, test_df
 
 
-def load_flattened_reviews():
-    train_text = joblib.load('models/flattened_train_reviews.pkl')
-    test_text = joblib.load('models/flattened_test_reviews.pkl')
-    return train_text, test_text
+# def flatten_reviews(label_df, reviews):
+#     """
+#         label_df: inspection dataframe with date, restaurant_id
+#         reviews: dataframe of reviews
+
+#         Returns all of the text of reviews previous to each
+#         inspection listed in label_df.
+#     """
+#     reviews_dictionary = {}
+#     N = len(label_df)
+
+#     for i, (pid, row) in enumerate(label_df.iterrows()):
+#         # we want to only get reviews for this restaurant that ocurred before the inspection
+#         pre_inspection_mask = (reviews.date < row.date) & (reviews.restaurant_id == row.restaurant_id)
+
+#         # pre-inspection reviews
+#         pre_inspection_reviews = reviews[pre_inspection_mask]
+
+#         # join the text
+#         all_text = ' '.join(pre_inspection_reviews.text)
+
+#         # store in dictionary
+#         reviews_dictionary[pid] = all_text
+
+#         if i % 2500 == 0:
+#             print '{} out of {}'.format(i, N)
+
+#     # return series in same order as the original data frame
+#     return pd.Series(reviews_dictionary)[label_df.index]
+
+
+# def train_and_save(reviews, train_labels, submission):
+#     train_text = flatten_reviews(train_labels, reviews)
+#     test_text = flatten_reviews(submission, reviews)
+#     joblib.dump(train_text, 'models/flattened_train_reviews')
+#     joblib.dump(test_text, 'models/flattened_test_reviews')
+#     return train_text, test_text
+
+
+# def load_flattened_reviews():
+#     train_text = joblib.load('models/flattened_train_reviews.pkl')
+#     test_text = joblib.load('models/flattened_test_reviews.pkl')
+#     return train_text, test_text
 
 
 def main():
@@ -201,7 +273,8 @@ def main():
     # train_labels, train_targets = get_response()
     # submission = get_submission()
     # train_and_save(reviews, train_labels, submission)
-    load_full_features()
+
+    make_train_test()
     print("{} seconds elapsed.".format(time() - t0))
 
 
