@@ -1,61 +1,60 @@
 from time import time
-from sklearn.externals import joblib
 
 import numpy as np
 import pandas as pd
 
 
-def get_reviews():
-    '''
-    returns reviews remapped to business_ids as a dataframe along with other review information
-    '''
-    id_map = pd.read_csv("data/restaurant_ids_to_yelp_ids.csv")
-    id_dict = {}
+# def get_reviews():
+#     '''
+#     returns reviews remapped to business_ids as a dataframe along with other review information
+#     '''
+#     id_map = pd.read_csv("data/restaurant_ids_to_yelp_ids.csv")
+#     id_dict = {}
 
-    # each Yelp ID may correspond to up to 4 Boston IDs
-    for i, row in id_map.iterrows():
-        boston_id = row["restaurant_id"]
-        # get the non-null Yelp IDs
-        non_null_mask = ~pd.isnull(row.ix[1:])
-        yelp_ids = row[1:][non_null_mask].values
-        for yelp_id in yelp_ids:
-            id_dict[yelp_id] = boston_id
+#     # each Yelp ID may correspond to up to 4 Boston IDs
+#     for i, row in id_map.iterrows():
+#         boston_id = row["restaurant_id"]
+#         # get the non-null Yelp IDs
+#         non_null_mask = ~pd.isnull(row.ix[1:])
+#         yelp_ids = row[1:][non_null_mask].values
+#         for yelp_id in yelp_ids:
+#             id_dict[yelp_id] = boston_id
 
-    with open("data/yelp_academic_dataset_review.json", 'r') as review_file:
-        # the file is not actually valid json since each line is an individual
-        # dict -- we will add brackets on the very beginning and ending in order
-        # to make this an array of dicts and join the array entries with commas
-        review_json = '[' + ','.join(review_file.readlines()) + ']'
-    # read in the json as a DataFrame
-    reviews = pd.read_json(review_json)
+#     with open("data/yelp_academic_dataset_review.json", 'r') as review_file:
+#         # the file is not actually valid json since each line is an individual
+#         # dict -- we will add brackets on the very beginning and ending in order
+#         # to make this an array of dicts and join the array entries with commas
+#         review_json = '[' + ','.join(review_file.readlines()) + ']'
+#     # read in the json as a DataFrame
+#     reviews = pd.read_json(review_json)
 
-    # replace yelp business_id with boston restaurant_id
-    map_to_boston_ids = lambda yelp_id: id_dict[yelp_id] if yelp_id in id_dict else np.nan
-    reviews.business_id = reviews.business_id.map(map_to_boston_ids)
+#     # replace yelp business_id with boston restaurant_id
+#     map_to_boston_ids = lambda yelp_id: id_dict[yelp_id] if yelp_id in id_dict else np.nan
+#     reviews.business_id = reviews.business_id.map(map_to_boston_ids)
 
-    # rename first column to restaurant_id so we can join with boston data
-    reviews.columns = ["restaurant_id", "review_date", "review_id", "stars", "text", "type", "user_id", "votes"]
+#     # rename first column to restaurant_id so we can join with boston data
+#     reviews.columns = ["restaurant_id", "review_date", "review_id", "stars", "text", "type", "user_id", "votes"]
 
-    # drop restaurants not found in boston data
-    reviews = reviews[pd.notnull(reviews.restaurant_id)]
+#     # drop restaurants not found in boston data
+#     reviews = reviews[pd.notnull(reviews.restaurant_id)]
 
-    # unwind date and votes
-    reviews['review_year'] = reviews['review_date'].dt.year
-    reviews['review_month'] = reviews['review_date'].dt.month
-    reviews['review_day'] = reviews['review_date'].dt.day
-    reviews['vote_cool'] = [i[1]['cool'] for i in reviews.votes.iteritems()]
-    reviews['vote_funny'] = [i[1]['funny'] for i in reviews.votes.iteritems()]
-    reviews['vote_useful'] = [i[1]['useful'] for i in reviews.votes.iteritems()]
+#     # unwind date and votes
+#     reviews['review_year'] = reviews['review_date'].dt.year
+#     reviews['review_month'] = reviews['review_date'].dt.month
+#     reviews['review_day'] = reviews['review_date'].dt.day
+#     reviews['vote_cool'] = [i[1]['cool'] for i in reviews.votes.iteritems()]
+#     reviews['vote_funny'] = [i[1]['funny'] for i in reviews.votes.iteritems()]
+#     reviews['vote_useful'] = [i[1]['useful'] for i in reviews.votes.iteritems()]
 
-    # drop redundant columns
-    return reviews
+#     # drop redundant columns
+#     return reviews
 
 
-def get_response():
-    train_labels = pd.read_csv("data/train_labels.csv", index_col=0)
-    # get just the targets from the training labels
-    train_targets = train_labels[['*', '**', '***']].astype(np.float64)
-    return train_labels, train_targets
+# def get_response():
+#     train_labels = pd.read_csv("data/train_labels.csv", index_col=0)
+#     # get just the targets from the training labels
+#     train_targets = train_labels[['*', '**', '***']].astype(np.float64)
+#     return train_labels, train_targets
 
 
 def get_submission():
@@ -117,9 +116,7 @@ def get_full_features():
     full_features.restaurant_id = full_features.restaurant_id.map(map_to_boston_ids)
 
     # drop restaurants not found in boston data
-    # print("Shape before dropping in feature grab: {}".format(full_features.shape))
     full_features = full_features[pd.notnull(full_features.restaurant_id)]
-    # print("Shape after dropping in feature grab: {}".format(full_features.shape))
 
     # training_response = pd.read_csv("data/train_labels.csv", index_col=None)
     # training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', '*', '**', '***']
@@ -160,12 +157,6 @@ def transform_features(df):
     # df['inspection_dayofyear'] = df.inspection_date.dt.dayofyear
     # df['inspection_weekofyear'] = df.inspection_date.dt.weekofyear
 
-    df.to_hdf('models/df_store.h5', 'transformed_features_df')
-    return df
-
-
-def load_transformed_features():
-    df = pd.read_hdf('models/df_store.h5', 'transformed_features_df')
     return df
 
 
@@ -175,17 +166,10 @@ def make_feature_response(feature_df, response_df):
     # combine features and response
     features_response = pd.merge(feature_df, response_df, on='restaurant_id')
 
-    # print("Shape before dropping in combined feature-response: {}".format(features_response.shape))
-    # drop restaurants not found in boston data
-    # features_response = features_response[pd.notnull(features_response.restaurant_id)]
-    # print("Shape after dropping in combined feature-response: {}".format(features_response.shape))
+    # remove reviews and tips that occur after an inspection - canceled because then end up removing restaurants that trying to predict for. future reviews still have predictive power and frames with no reviews but other information still have predictive power
+    # no_future = features_response[features_response.review_date < features_response.inspection_date]
 
-    # remove reviews and tips that occur after an inspection
-    no_future = features_response[features_response.review_date < features_response.inspection_date]
-
-    # print("Shape after removing post-inspection reviews in combined feature-response : {}".format(no_future.shape))
-
-    return no_future
+    return features_response
 
 
 def make_train_test():

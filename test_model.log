@@ -1,0 +1,29 @@
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=True))])
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+INFO:__main__:87 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:92 seconds elapsed from start after feature extraction.
+INFO:__main__:65 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:69 seconds elapsed from start after feature extraction.
+INFO:__main__:Score of {} +/- {}
+INFO:__main__:57 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:61 seconds elapsed from start after feature extraction.
+INFO:__main__:58 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:62 seconds elapsed from start after feature extraction.
+INFO:__main__:63 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:68 seconds elapsed from start after feature extraction.
+INFO:__main__:56 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:60 seconds elapsed from start after feature extraction.
+INFO:__main__:44 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:49 seconds elapsed from start after feature extraction.
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:64 seconds elapsed from start after model(s) scored.
+INFO:__main__:64 seconds elapsed from start after entire run.
+INFO:__main__:80 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:83 seconds elapsed from start after feature extraction.
+INFO:__main__:65 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:69 seconds elapsed from start after feature extraction.
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:85 seconds elapsed from start after model(s) scored.
+INFO:__main__:85 seconds elapsed from start after entire run.
+INFO:__main__:85 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:89 seconds elapsed from start after feature extraction.

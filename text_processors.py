@@ -1,8 +1,7 @@
 import sendMessage
 import nltk
-import json
 import re
-import pickle
+import cPickle as pickle
 from progressbar import ProgressBar
 from time import time
 from nltk.stem.snowball import SnowballStemmer
@@ -35,17 +34,17 @@ def tokenize(text, spellcheck=False, stem=False, lemmatize=True):
     return tokens
 
 
-def preprocess_text():
-    df = data_grab.load_full_features()
+def preprocess_text(df, filename):
     tokened_list = []
     pbar = ProgressBar(maxval=df.shape[0]).start()
     for i, text in enumerate(df.review_text):
         tokens = tokenize(text)
         tokened_list.append(tokens)
         pbar.update(i)
-    with open('models/preprocessed_text.pkl', 'wb') as f:
-        json.dump(tokened_list, f)
+    with open('models/'+filename, 'w') as f:
+        cpickle.dump(tokened_list, f)
     pbar.finish()
+
 
 
 def tfidf_and_save(train_text, params=None):
@@ -100,7 +99,9 @@ def main():
     # train_text, test_text = data_grab.load_flattened_reviews()
     # vec, train_tfidf = tfidf_custom_token_and_save(train_text)
 
-    preprocess_text()
+    train_df, test_df = data_grab.load_dataframes
+    preprocess_text(train_df, 'processed_train_text.pkl')
+    preprocess_text(test_df, 'processed_test_text.pkl')
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))

@@ -1,0 +1,9 @@
+INFO:__main__:64 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 3)
+INFO:__main__:70 seconds elapsed from start after feature extraction.
+INFO:__main__:74 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 3)
+INFO:__main__:78 seconds elapsed from start after feature extraction.
+INFO:__main__:75 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:__main__:79 seconds elapsed from start after feature extraction.
