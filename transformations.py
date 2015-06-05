@@ -24,6 +24,6 @@ def logShape(shape1, shape2):
 
 def text_to_length(df):
     s1 = df.shape
-    df['review_text'] = df.review_text.apply(lambda x: len(x))
+    df.loc[:, 'review_text'] = df.review_text.apply(lambda x: len(x))
     logShape(s1, df.shape)
     return df

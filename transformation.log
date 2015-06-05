@@ -7,3 +7,82 @@ INFO:__main__:78 seconds elapsed from start after feature extraction.
 INFO:__main__:75 seconds elapsed from start after dataframes retrieved.
 INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
 INFO:__main__:79 seconds elapsed from start after feature extraction.
+INFO:__main__:77 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:84 seconds elapsed from start after feature extraction.
+INFO:__main__:63 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:71 seconds elapsed from start after feature extraction.
+INFO:__main__:74 seconds elapsed from start after entire run.
+INFO:__main__:75 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:81 seconds elapsed from start after feature extraction.
+INFO:__main__:56 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:63 seconds elapsed from start after feature extraction.
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:79 seconds elapsed from start after model(s) scored.
+INFO:__main__:55 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:61 seconds elapsed from start after feature extraction.
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:79 seconds elapsed from start after model(s) scored.
+INFO:__main__:81 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:87 seconds elapsed from start after feature extraction.
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:104 seconds elapsed from start after model(s) scored.
+INFO:__main__:128 seconds elapsed from start after plots made.
+INFO:__main__:128 seconds elapsed from start after fit and submit.
+INFO:__main__:128 seconds elapsed from start after entire run.
+INFO:__main__:86 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:93 seconds elapsed from start after feature extraction.
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:112 seconds elapsed from start after model(s) scored.
+INFO:__main__:131 seconds elapsed from start after plots made.
+INFO:__main__:131 seconds elapsed from start after fit and submit.
+INFO:__main__:131 seconds elapsed from start after entire run.
+INFO:__main__:84 seconds elapsed from start after dataframes retrieved.
+INFO:__main__:56 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:62 seconds elapsed from start after feature extraction.
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:Contest score of
+INFO:__main__:85 seconds elapsed from start after model(s) scored.
+INFO:__main__:104 seconds elapsed from start after plots made.
+INFO:__main__:104 seconds elapsed from start after entire run.
+INFO:__main__:61 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:67 seconds elapsed from start after feature extraction.
+INFO:__main__:74 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:79 seconds elapsed from start after feature extraction.
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:Contest score of
+INFO:__main__:46 seconds elapsed from start after dataframes retrieved.
+INFO:transformations:Shape before transformation of (4071065, 2) and after transformation of (4071065, 2)
+INFO:transformations:Shape before transformation of (1044138, 42) and after transformation of (1044138, 42)
+INFO:__main__:53 seconds elapsed from start after feature extraction.
+INFO:__main__:Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+INFO:__main__:Score of -0.00123098896191 +/- 0.000823383732187
+INFO:__main__:Contest score of
+INFO:__main__:74 seconds elapsed from start after model(s) scored.
+INFO:__main__:90 seconds elapsed from start after plots made.
+INFO:__main__:90 seconds elapsed from start after entire run.
