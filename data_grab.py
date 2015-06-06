@@ -62,19 +62,28 @@ def get_submission():
     return submission
 
 
-def get_full_features():
+def get_reviews():
     with open("data/yelp_academic_dataset_review.json", 'r') as f:
         # the file is not actually valid json since each line is an individual
         # dict -- we will add brackets on the very beginning and ending in order
         # to make this an array of dicts and join the array entries with commas
         review_json = '[' + ','.join(f.readlines()) + ']'
     reviews = pd.read_json(review_json)
+    return reviews
 
+
+def get_tips():
     with open("data/yelp_academic_dataset_tip.json", 'r') as f:
         tip_json = '[' + ','.join(f.readlines()) + ']'
     tips = pd.read_json(tip_json)
+    return tips
 
-    # some nan's will exist because of this where reviews columns and tips columns don't match up
+
+def get_full_features():
+    reviews = get_reviews()
+    tips = get_tips()
+
+    # some nan's will exist because of this. will exist where reviews columns and tips columns don't match up
     reviews_tips = reviews.append(tips)
     reviews_tips.columns = [u'restaurant_id', u'review_date', u'tip_likes', u'review_id', u'review_stars', u'review_text', u'review_type', u'user_id', u'review_votes']
 

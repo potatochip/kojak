@@ -16,10 +16,10 @@ import matplotlib.pyplot as plt
 
 from time import time
 from pprint import pprint
+from datetime import datetime
 from prettytable import PrettyTable
 from progressbar import ProgressBar
 from pymongo.cursor import CursorType
-from sklearn.externals import joblib
 
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
@@ -27,13 +27,6 @@ from sklearn.preprocessing import Normalizer
 from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import cross_val_score
 from sklearn.cross_validation import train_test_split
-
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import SGDClassifier
-from sklearn.ensemble import BaggingClassifier
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 LOG_FILENAME = 'test_model.log'
@@ -138,7 +131,7 @@ def score_model(X, y, pipeline):
     scores = cross_val_score(pipeline, X, y, cv=3, n_jobs=n_jobs, verbose=1)
     mean_score = np.mean(scores)
     std_dev_score = np.std(scores)
-    logPrint("Score of {} +/- {}".format(mean_score, std_dev_score))
+    logPrint("CV score of {} +/- {}".format(mean_score, std_dev_score))
     return mean_score, std_dev_score
 
 
@@ -153,9 +146,10 @@ def score_multiple(X, y, estimator_list):
         logPrint("Scoring {}".format(str(pipeline)))
         mean_score, std_dev_score = score_model(X, y, pipeline)
         contest_score = contest_scoring(X, y, pipeline)
+        dt = str(datetime.now())
         estimator_name = str(estimator).split('(')[0]
-        score_list.append((estimator_name, mean_score, std_dev_score, contest_score))
-        print()
+        score_list.append((dt, estimator_name, mean_score, std_dev_score, contest_score))
+        print('\n')
     return score_list
 
 
@@ -220,31 +214,38 @@ def main(features, submit_filename=None, submit_pipeline=None):
 
     # score models
     score_list = score_multiple(X_train, y_train, estimator_list)
-    x = PrettyTable(["Estimator", "Score Mean", "Score StndDev", "Contest Score"])
+    x = PrettyTable(["Datetime", "Estimator", "Score Mean", "Score StndDev", "Contest Score"])
     x.align["City name"] = "l"
     x.padding_width = 1
     for i in score_list:
         x.add_row(i)
     print x
-    with open('estimator_log.csv', 'w') as f:
+    with open('models/estimator_log.csv', 'a') as f:
         writer = csv.writer(f, dialect='excel')
-        writer.writerow(["Estimator", "Score Mean", "Score StndDev", "Contest Score"])
+        # writer.writerow(["Datetime", "Estimator", "Score Mean", "Score StndDev", "Contest Score"])
         writer.writerows(score_list)
     logTime(t0, time(), 'model(s) scored')
-
-    # # make data exploration plots
-    make_plots(X_train, y_train, 'text_length')
-    logTime(t0, time(), 'plots made')
 
     if submit_pipeline:
         # # make submission file from either a single estimator or a pipeline
         fit_and_submit(X_train, y_train, test_df, submit_pipeline, submit_filename)
         logTime(t0, time(), 'fit and submit')
 
+        # # make data exploration plots
+    make_plots(X_train, y_train, 'text_length')
+    logTime(t0, time(), 'plots made')
+
     logTime(t0, time(), 'entire run')
     sendMessage.doneTextSend(t0, time(), 'test_model')
 
 
+
+# from sklearn.naive_bayes import MultinomialNB
+# from sklearn.linear_model import SGDClassifier
+# from sklearn.ensemble import BaggingClassifier
+# from sklearn.linear_model import LinearRegression
+# from sklearn.ensemble import RandomForestClassifier
+# from sklearn.feature_extraction.text import TfidfVectorizer
 
 # set classifiers to test
 # estimator = LinearRegression(Normalize=True)

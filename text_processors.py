@@ -19,7 +19,8 @@ def tokenize(text, spellcheck=False, stem=False, lemmatize=True):
     b = TextBlob(text)
     if spellcheck:
         b = b.correct()
-    words = b.words.lower()
+    words = b.words
+    # words = words.lower()
     if lemmatize:
         words = words.lemmatize()
     tokens = [w for w in words if w.isalpha() and w not in stopwords]
@@ -35,16 +36,32 @@ def tokenize(text, spellcheck=False, stem=False, lemmatize=True):
 
 
 def preprocess_text(df, filename):
-    tokened_list = []
+    text_list = []
     pbar = ProgressBar(maxval=df.shape[0]).start()
     for i, text in enumerate(df.review_text):
         tokens = tokenize(text)
         tokened_list.append(tokens)
         pbar.update(i)
     with open('models/'+filename, 'w') as f:
-        cpickle.dump(tokened_list, f)
+        pickle.dump(tokened_list, f)
     pbar.finish()
 
+
+def tfidf_text(original_text, train_df, test_df):
+    # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus?
+    train_text = train_df.review_text
+    test_text = test_df.review_text
+    vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1,3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0)
+    model = vec.fit(original_text)
+    with open('models/tfidf_vectorizer.pkl', 'w') as f:
+        pickle.dump(model, f)
+    train_docs = vec.transform(train_text)
+    with open('models/tfidf_train_docs.pkl', 'w') as f:
+        pickle.dump(train_docs, f)
+    test_docs = vec.transform(test_text)
+    with open('models/tfidf_test_docs.pkl', 'w') as f:
+        pickle.dump(test_docs, f)
+    return train_docs, test_docs
 
 
 def tfidf_and_save(train_text, params=None):
@@ -99,9 +116,9 @@ def main():
     # train_text, test_text = data_grab.load_flattened_reviews()
     # vec, train_tfidf = tfidf_custom_token_and_save(train_text)
 
-    train_df, test_df = data_grab.load_dataframes
-    preprocess_text(train_df, 'processed_train_text.pkl')
-    preprocess_text(test_df, 'processed_test_text.pkl')
+    train_df, test_df = data_grab.load_dataframes()
+    original_text = data_grab.get_reviews()
+    tfidf_text(original_text, train_df, test_df)
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))
