@@ -14,16 +14,20 @@ stopwords = set(nltk.corpus.stopwords.words('english'))
 stemmer = SnowballStemmer("english")
 
 
-def tokenize(text, spellcheck=False, stem=False, lemmatize=True):
+def tokenize(text, spellcheck=False, stem=False, lemmatize=True, lowercase=False, stopwords=False):
     # lowercase, remove non-alphas and punctuation
     b = TextBlob(text)
     if spellcheck:
         b = b.correct()
     words = b.words
-    # words = words.lower()
+    if lowercase:
+        words = words.lower()
     if lemmatize:
         words = words.lemmatize()
-    tokens = [w for w in words if w.isalpha() and w not in stopwords]
+    if stopwords:
+        tokens = [w for w in words if w.isalpha() and w not in stopwords]
+    else:
+        tokens = [w for w in words if w.isalpha()]
 
     # letters_only = re.sub("[^a-zA-Z]", " ", text)
     # words = letters_only.lower().split()
@@ -36,7 +40,7 @@ def tokenize(text, spellcheck=False, stem=False, lemmatize=True):
 
 
 def preprocess_text(df, filename):
-    text_list = []
+    tokened_list = []
     pbar = ProgressBar(maxval=df.shape[0]).start()
     for i, text in enumerate(df.review_text):
         tokens = tokenize(text)
@@ -47,63 +51,25 @@ def preprocess_text(df, filename):
     pbar.finish()
 
 
-def tfidf_text(original_text, train_df, test_df):
-    # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus?
-    train_text = train_df.review_text
-    test_text = test_df.review_text
-    vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1,3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0)
-    model = vec.fit(original_text)
-    with open('models/tfidf_vectorizer.pkl', 'w') as f:
-        pickle.dump(model, f)
+def tfidf_text(description='base', custom_vec=False):
+    # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus?review_text
+    with open('models/reviews_tips_original_text.pkl') as f:
+        original_text = pickle.load(f)
+    if custom_vec:
+        vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1,3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0, strip_accents='unicode')
+    else:
+        vec = TfidfVectorizer(stop_words='english', max_df=0.9, min_df=0.1)
+    vec = vec.fit(original_text)
+    joblib.dump(vec, 'models/tfidf_vectorizer_'+description)
+
+    train_text = data_grab.load_train_df()
     train_docs = vec.transform(train_text)
-    with open('models/tfidf_train_docs.pkl', 'w') as f:
-        pickle.dump(train_docs, f)
+    joblib.dump(train_docs, 'models/tfidf_train_docs_'+description)
+    del train_text, train_docs
+
+    test_text = data_grab.load_text_df()
     test_docs = vec.transform(test_text)
-    with open('models/tfidf_test_docs.pkl', 'w') as f:
-        pickle.dump(test_docs, f)
-    return train_docs, test_docs
-
-
-def tfidf_and_save(train_text, params=None):
-    if not params: params = 'base'
-    vec = TfidfVectorizer(stop_words='english')
-    train_tfidf = vec.fit_transform(train_text)
-    joblib.dump(vec, 'models/tfidf_vectorizer_'+params)
-    joblib.dump(train_tfidf, 'models/tfidf_array_'+params)
-    return vec, train_tfidf
-
-
-def tfidf_custom_token_and_save(train_text, params='spell_lemma'):
-    if not params: params = 'base'
-    vec = TfidfVectorizer(tokenizer=tokenize)
-    train_tfidf = vec.fit_transform(train_text)
-    joblib.dump(vec, 'models/tfidf_custom_token_vectorizer_'+params)
-    joblib.dump(train_tfidf, 'models/tfidf_custom_token_array_'+params)
-    return vec, train_tfidf
-
-
-def load_tfidf_custom_token_matrix(params=None):
-    if not params: params = 'base'
-    train_tfidf = joblib.load('models/tfidf_custom_token_array_'+params)
-    return train_tfidf
-
-
-def load_tfidf_custom_token_vectorizer(params=None):
-    if not params: params = 'base'
-    vec = joblib.load('models/tfidf_custom_token_vectorizer_'+params)
-    return vec
-
-
-def load_tfidf_matrix(params=None):
-    if not params: params = 'base'
-    train_tfidf = joblib.load('models/tfidf_array_'+params)
-    return train_tfidf
-
-
-def load_tfidf_vectorizer(params=None):
-    if not params: params = 'base'
-    vec = joblib.load('models/tfidf_vectorizer_'+params)
-    return vec
+    joblib.dump(test_docs, 'models/tfidf_test_docs_'+description)
 
 
 def main():
@@ -117,8 +83,7 @@ def main():
     # vec, train_tfidf = tfidf_custom_token_and_save(train_text)
 
     train_df, test_df = data_grab.load_dataframes()
-    original_text = data_grab.get_reviews()
-    tfidf_text(original_text, train_df, test_df)
+    tfidf_text(train_df, test_df)
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))

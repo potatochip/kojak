@@ -4,8 +4,9 @@ from time import time
 import pandas as pd
 import numpy as np
 
+
 LOG_FILENAME = 'transformation.log'
-logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
+logging.basicConfig(filename=LOG_FILENAME, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

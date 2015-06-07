@@ -30,7 +30,7 @@ from sklearn.cross_validation import train_test_split
 
 
 LOG_FILENAME = 'test_model.log'
-logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
+logging.basicConfig(filename=LOG_FILENAME, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # exhaust_cursor = pymongo.cursor.CursorType.EXHAUST
@@ -200,6 +200,10 @@ def contest_scoring(X, y, pipeline):
     score = contest_metric(model.predict(X_test), y_test)[0]
     logPrint("Contest score of {}".format(score))
     return score
+
+
+def multi_feature_test(feature_list, estimator_list):
+    for feature in feature_list:
 
 
 def main(features, submit_filename=None, submit_pipeline=None):

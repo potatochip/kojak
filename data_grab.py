@@ -2,6 +2,7 @@ from time import time
 
 import numpy as np
 import pandas as pd
+import cPickle as pickle
 
 
 # def get_reviews():
@@ -79,6 +80,29 @@ def get_tips():
     return tips
 
 
+def get_users():
+    with open("data/yelp_academic_dataset_user.json", 'r') as f:
+        user_json = '[' + ','.join(f.readlines()) + ']'
+    users = pd.read_json(user_json)
+    users.columns = [u'user_average_stars', u'user_compliments', u'user_elite', u'user_fans', u'user_friends', u'user_name', u'user_review_count', u'user_type', u'user_id', u'user_votes', u'user_yelping_since']
+    return users
+
+
+def get_restaurants():
+    with open("data/yelp_academic_dataset_business.json", 'r') as f:
+        restaurant_json = '[' + ','.join(f.readlines()) + ']'
+    restaurants = pd.read_json(restaurant_json)
+    restaurants.columns = [u'restaurant_attributes', u'restaurant_id', u'restaurant_categories', u'restaurant_city', u'restaurant_full_address', u'restaurant_hours', u'restaurant_latitude', u'restaurant_longitude', u'restaurant_name', u'restaurant_neighborhoods', u'restaurant_open', u'restaurant_review_count', u'restaurant_stars', u'restaurant_state', u'restaurant_type']
+    return restaurants
+
+
+def get_checkins():
+    with open("data/yelp_academic_dataset_checkin.json", 'r') as f:
+        checkin_json = '[' + ','.join(f.readlines()) + ']'
+    checkins = pd.read_json(checkin_json)
+    checkins.columns = [u'restaurant_id', u'checkin_info', u'checkin_type']
+    return checkins
+
 def get_full_features():
     reviews = get_reviews()
     tips = get_tips()
@@ -87,25 +111,18 @@ def get_full_features():
     reviews_tips = reviews.append(tips)
     reviews_tips.columns = [u'restaurant_id', u'review_date', u'tip_likes', u'review_id', u'review_stars', u'review_text', u'review_type', u'user_id', u'review_votes']
 
-    with open("data/yelp_academic_dataset_user.json", 'r') as f:
-        user_json = '[' + ','.join(f.readlines()) + ']'
-    users = pd.read_json(user_json)
-    users.columns = [u'user_average_stars', u'user_compliments', u'user_elite', u'user_fans', u'user_friends', u'user_name', u'user_review_count', u'user_type', u'user_id', u'user_votes', u'user_yelping_since']
+    # saving this for tfidf vectorizer training later
+    with open('models/reviews_tips_original_text.pkl', 'w') as f:
+        pickle.dump(reviews_tips.review_text.tolist(), f)
 
+    users = get_users()
     users_reviews_tips = pd.merge(reviews_tips, users, on='user_id')
 
-    with open("data/yelp_academic_dataset_business.json", 'r') as f:
-        restaurant_json = '[' + ','.join(f.readlines()) + ']'
-    restaurants = pd.read_json(restaurant_json)
-    restaurants.columns = [u'restaurant_attributes', u'restaurant_id', u'restaurant_categories', u'restaurant_city', u'restaurant_full_address', u'restaurant_hours', u'restaurant_latitude', u'restaurant_longitude', u'restaurant_name', u'restaurant_neighborhoods', u'restaurant_open', u'restaurant_review_count', u'restaurant_stars', u'restaurant_state', u'restaurant_type']
-
+    restaurants = get_restaurants()
     restaurants_users_reviews_tips = pd.merge(users_reviews_tips, restaurants, on='restaurant_id')
 
-    with open("data/yelp_academic_dataset_checkin.json", 'r') as f:
-        checkin_json = '[' + ','.join(f.readlines()) + ']'
-    checkins = pd.read_json(checkin_json)
-    checkins.columns = [u'restaurant_id', u'checkin_info', u'checkin_type']
-
+    # if checkins dont exist for a restaurant dont want to drop the restaurant values
+    checkins = get_checkins()
     full_features = pd.merge(restaurants_users_reviews_tips, checkins, how='left', on='restaurant_id')
 
     id_map = pd.read_csv("data/restaurant_ids_to_yelp_ids.csv")
@@ -127,22 +144,7 @@ def get_full_features():
     # drop restaurants not found in boston data
     full_features = full_features[pd.notnull(full_features.restaurant_id)]
 
-    # training_response = pd.read_csv("data/train_labels.csv", index_col=None)
-    # training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', '*', '**', '***']
-
-    # # convert date to datetime object
-    # training_response.inspection_date = pd.to_datetime(pd.Series(training_response.inspection_date))
-
-    # full_features_response = pd.merge(full_features, training_response, on='restaurant_id')
-
-    # # remove reviews and tips that occur after an inspection
-    # no_future = full_features_response[full_features_response.review_date < full_features_response.inspection_date]
-
-    # print(no_future.shape)
-
     full_features.to_hdf('models/df_store.h5', 'full_features_df')
-    # no_future.to_hdf('models/df_store.h5', 'full_features_df')
-    # return no_future
     return full_features
 
 
@@ -154,6 +156,12 @@ def load_full_features():
 def transform_features(df):
     # create number representing days passed between inspection date and review date
     df['time_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
+
+    # remove columns with values without variance
+    df.drop('restaurant_type', axis=1, inplace=True)
+
+    scores = df[['*', '**', '***']].astype(np.float64)
+    df['transformed_score'] = scores.multiply([1,3,5], axis=1).sum(axis=1)
 
     # df['vote_cool'] = [i[1]['cool'] for i in df.votes.iteritems()]
     # df['vote_funny'] = [i[1]['funny'] for i in df.votes.iteritems()]
@@ -207,11 +215,21 @@ def make_train_test():
     return transformed_training_df, transformed_test_df
 
 
+def load_train_df():
+    train_df = pd.read_hdf('models/df_store.h5', 'transformed_training_df')
+    return train_df
+
+
+def load_test_df():
+    test_df = pd.read_hdf('models/df_store.h5', 'transformed_test_df')
+    return test_df
+
+
 def load_dataframes():
     # test refers to what is being submitted to the competition
     # running cross_val_score on train only
-    train_df = pd.read_hdf('models/df_store.h5', 'transformed_training_df')
-    test_df = pd.read_hdf('models/df_store.h5', 'transformed_test_df')
+    train_df = load_train_df()
+    test_df = load_test_df()
     return train_df, test_df
 
 
