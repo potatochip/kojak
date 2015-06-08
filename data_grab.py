@@ -3,6 +3,10 @@ from time import time
 import numpy as np
 import pandas as pd
 import cPickle as pickle
+from pandas.io.json import json_normalize
+import sendMessage
+import yaml
+import re
 
 
 # def get_reviews():
@@ -64,62 +68,82 @@ def get_submission():
 
 
 def get_reviews():
+    data = []
     with open("data/yelp_academic_dataset_review.json", 'r') as f:
-        # the file is not actually valid json since each line is an individual
-        # dict -- we will add brackets on the very beginning and ending in order
-        # to make this an array of dicts and join the array entries with commas
-        review_json = '[' + ','.join(f.readlines()) + ']'
-    reviews = pd.read_json(review_json)
+        for line in f:
+            data.append(yaml.safe_load(line)) # reads text from json as str rather than unicode as json module does
+    reviews = json_normalize(data)
     return reviews
 
 
 def get_tips():
+    data = []
     with open("data/yelp_academic_dataset_tip.json", 'r') as f:
-        tip_json = '[' + ','.join(f.readlines()) + ']'
-    tips = pd.read_json(tip_json)
+        for line in f:
+            data.append(yaml.safe_load(line))
+    tips = json_normalize(data)
     return tips
 
 
 def get_users():
+    data = []
     with open("data/yelp_academic_dataset_user.json", 'r') as f:
-        user_json = '[' + ','.join(f.readlines()) + ']'
-    users = pd.read_json(user_json)
-    users.columns = [u'user_average_stars', u'user_compliments', u'user_elite', u'user_fans', u'user_friends', u'user_name', u'user_review_count', u'user_type', u'user_id', u'user_votes', u'user_yelping_since']
+        for line in f:
+            data.append(yaml.safe_load(line))
+    users = json_normalize(data)
+    users.columns = ['user_average_stars', 'user_compliments.cool', 'user_compliments.cute', 'user_compliments.funny', 'user_compliments.hot', 'user_compliments.list', 'user_compliments.more', 'user_compliments.note', 'user_compliments.photos', 'user_compliments.plain', 'user_compliments.profile', 'user_compliments.writer', 'user_elite', 'user_fans', 'user_friends', 'user_name', 'user_review_count', 'user_type', 'user_id', 'user_votes.cool', 'user_votes.funny', 'user_votes.useful', 'user_yelping_since']
     return users
 
 
 def get_restaurants():
+    data = []
     with open("data/yelp_academic_dataset_business.json", 'r') as f:
-        restaurant_json = '[' + ','.join(f.readlines()) + ']'
-    restaurants = pd.read_json(restaurant_json)
-    restaurants.columns = [u'restaurant_attributes', u'restaurant_id', u'restaurant_categories', u'restaurant_city', u'restaurant_full_address', u'restaurant_hours', u'restaurant_latitude', u'restaurant_longitude', u'restaurant_name', u'restaurant_neighborhoods', u'restaurant_open', u'restaurant_review_count', u'restaurant_stars', u'restaurant_state', u'restaurant_type']
+        for line in f:
+            data.append(yaml.safe_load(line))
+    restaurants = json_normalize(data)
+    # duplicate columns exist for 'good for kids'
+    shorter = restaurants['attributes.Good For Kids'].tolist()
+    longer = restaurants['attributes.Good for Kids'].fillna(0).tolist()
+    new_kids_on_the_block = []
+    for index, val in enumerate(longer):
+        if val == 0:
+            new_kids_on_the_block.append(shorter[index])
+        else:
+            new_kids_on_the_block.append(val)
+    restaurants.drop('attributes.Good For Kids', axis=1, inplace=True)
+    restaurants['attributes.Good for Kids'] = new_kids_on_the_block
+    restaurants.columns = ['restaurant_attributes.accepts_credit_cards', 'restaurant_attributes.ages_allowed', 'restaurant_attributes.alcohol', 'restaurant_attributes.ambience.casual', 'restaurant_attributes.ambience.classy', 'restaurant_attributes.ambience.divey', 'restaurant_attributes.ambience.hipster', 'restaurant_attributes.ambience.intimate', 'restaurant_attributes.ambience.romantic', 'restaurant_attributes.ambience.touristy', 'restaurant_attributes.ambience.trendy', 'restaurant_attributes.ambience.upscale', 'restaurant_attributes.attire', 'restaurant_attributes.byob', 'restaurant_attributes.byob/corkage', 'restaurant_attributes.by_appointment_only', 'restaurant_attributes.caters', 'restaurant_attributes.coat_check', 'restaurant_attributes.corkage', 'restaurant_attributes.delivery', 'restaurant_attributes.dietary_restrictions.dairy-free', 'restaurant_attributes.dietary_restrictions.gluten-free', 'restaurant_attributes.dietary_restrictions.halal', 'restaurant_attributes.dietary_restrictions.kosher', 'restaurant_attributes.dietary_restrictions.soy-free', 'restaurant_attributes.dietary_restrictions.vegan', 'restaurant_attributes.dietary_restrictions.vegetarian', 'restaurant_attributes.dogs_allowed', 'restaurant_attributes.drive-thr', 'restaurant_attributes.good_for_dancing', 'restaurant_attributes.good_for_groups', 'restaurant_attributes.good_for_breakfast', 'restaurant_attributes.good_for_brunch', 'restaurant_attributes.good_for_dessert', 'restaurant_attributes.good_for_dinner', 'restaurant_attributes.good_for_latenight', 'restaurant_attributes.good_for_lunch', 'restaurant_attributes.good_for_kids', 'restaurant_attributes.happy_hour', 'restaurant_attributes.has_tv', 'restaurant_attributes.music.background_music', 'restaurant_attributes.music.dj', 'restaurant_attributes.music.jukebox', 'restaurant_attributes.music.karaoke', 'restaurant_attributes.music.live', 'restaurant_attributes.music.video', 'restaurant_attributes.noise_level', 'restaurant_attributes.open_24_hours', 'restaurant_attributes.order_at_counter', 'restaurant_attributes.outdoor_seating', 'restaurant_attributes.parking.garage', 'restaurant_attributes.parking.lot', 'restaurant_attributes.parking.street', 'restaurant_attributes.parking.valet', 'restaurant_attributes.parking.validated', 'restaurant_attributes.payment_types.amex', 'restaurant_attributes.payment_types.cash_only', 'restaurant_attributes.payment_types.discover', 'restaurant_attributes.payment_types.mastercard', 'restaurant_attributes.payment_types.visa', 'restaurant_attributes.price_range', 'restaurant_attributes.smoking', 'restaurant_attributes.take-out', 'restaurant_attributes.takes_reservations', 'restaurant_attributes.waiter_service', 'restaurant_attributes.wheelchair_accessible', 'restaurant_attributes.wi-fi', 'restaurant_id', 'restaurant_categories', 'restaurant_city', 'restaurant_full_address', 'restaurant_hours.friday.close', 'restaurant_hours.friday.open', 'restaurant_hours.monday.close', 'restaurant_hours.monday.open', 'restaurant_hours.saturday.close', 'restaurant_hours.saturday.open', 'restaurant_hours.sunday.close', 'restaurant_hours.sunday.open', 'restaurant_hours.thursday.close', 'restaurant_hours.thursday.open', 'restaurant_hours.tuesday.close', 'restaurant_hours.tuesday.open', 'restaurant_hours.wednesday.close', 'restaurant_hours.wednesday.open', 'restaurant_latitude', 'restaurant_longitude', 'restaurant_name', 'restaurant_neighborhoods', 'restaurant_open', 'restaurant_review_count', 'restaurant_stars', 'restaurant_state', 'restaurant_type']
     return restaurants
 
 
 def get_checkins():
+    data = []
     with open("data/yelp_academic_dataset_checkin.json", 'r') as f:
-        checkin_json = '[' + ','.join(f.readlines()) + ']'
-    checkins = pd.read_json(checkin_json)
-    checkins.columns = [u'restaurant_id', u'checkin_info', u'checkin_type']
+        for line in f:
+            data.append(yaml.safe_load(line))
+    # checkins = json_normalize(data)
+    # above returns like 200 columns of checkin_info
+    checkins = pd.DataFrame(data)
+    checkins.columns = ['restaurant_id', 'checkin_info', 'checkin_type']
     return checkins
+
 
 def get_full_features():
     reviews = get_reviews()
     tips = get_tips()
 
-    # some nan's will exist because of this. will exist where reviews columns and tips columns don't match up
+    # some nan's will exist where reviews columns and tips columns don't match up
     reviews_tips = reviews.append(tips)
-    reviews_tips.columns = [u'restaurant_id', u'review_date', u'tip_likes', u'review_id', u'review_stars', u'review_text', u'review_type', u'user_id', u'review_votes']
-
+    reviews_tips.columns = ['restaurant_id', 'review_date', 'tip_likes', 'review_id', 'review_stars', 'review_text', 'review_type', 'user_id', 'review_votes.cool', 'review_votes.funny', 'review_votes.useful']
     # saving this for tfidf vectorizer training later
     with open('models/reviews_tips_original_text.pkl', 'w') as f:
         pickle.dump(reviews_tips.review_text.tolist(), f)
 
     users = get_users()
-    users_reviews_tips = pd.merge(reviews_tips, users, on='user_id')
+    users_reviews_tips = pd.merge(reviews_tips, users, how='left', on='user_id')
 
     restaurants = get_restaurants()
-    restaurants_users_reviews_tips = pd.merge(users_reviews_tips, restaurants, on='restaurant_id')
+    restaurants_users_reviews_tips = pd.merge(users_reviews_tips, restaurants, how='outer', on='restaurant_id')
 
     # if checkins dont exist for a restaurant dont want to drop the restaurant values
     checkins = get_checkins()
@@ -144,46 +168,161 @@ def get_full_features():
     # drop restaurants not found in boston data
     full_features = full_features[pd.notnull(full_features.restaurant_id)]
 
-    full_features.to_hdf('models/df_store.h5', 'full_features_df')
     return full_features
-
-
-def load_full_features():
-    df = pd.read_hdf('models/df_store.h5', 'full_features_df')
-    return df
 
 
 def transform_features(df):
     # create number representing days passed between inspection date and review date
     df['time_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
 
-    # remove columns with values without variance
+    # remove columns that have values without variance or are unnecessary
     df.drop('restaurant_type', axis=1, inplace=True)
+    df.drop('review_type', axis=1, inplace=True)
+    df.drop('review_id', axis=1, inplace=True)
+    df.drop('user_name', axis=1, inplace=True)
+    df.drop('user_type', axis=1, inplace=True)
+    df.drop('restaurant_state', axis=1, inplace=True)
+    df.drop('checkin_type', axis=1, inplace=True)
+    # networkx this later
+    df.drop('user_friends', axis=1, inplace=True)
 
-    scores = df[['*', '**', '***']].astype(np.float64)
+    # weigh scores according to competition weights and sum
+    scores = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)
     df['transformed_score'] = scores.multiply([1,3,5], axis=1).sum(axis=1)
 
-    # df['vote_cool'] = [i[1]['cool'] for i in df.votes.iteritems()]
-    # df['vote_funny'] = [i[1]['funny'] for i in df.votes.iteritems()]
-    # df['vote_useful'] = [i[1]['useful'] for i in df.votes.iteritems()]
-    # df['review_year'] = df['review_date'].dt.year
-    # df['review_month'] = df['review_date'].dt.month
-    # df['review_day'] = df['review_date'].dt.day
-    # df['inspection_dayofweek'] = df.inspection_date.dt.dayofweek
-    # df['inspection_quarter'] = df.inspection_date.dt.quarter
-    # df['inspection_dayofyear'] = df.inspection_date.dt.dayofyear
-    # df['inspection_weekofyear'] = df.inspection_date.dt.weekofyear
+    # expand review_date and inspection_date into parts of year. could probably just get by with month or dayofyear
+    df['review_year'] = df['inspection_date'].dt.year
+    df['review_month'] = df['review_date'].dt.month
+    df['review_day'] = df['review_date'].dt.day
+    df['review_dayofweek'] = df['review_date'].dt.dayofweek
+    df['review_quarter'] = df['review_date'].dt.quarter
+    df['review_dayofyear'] = df['review_date'].dt.dayofyear
+    df['inspection_year'] = df['inspection_date'].dt.year
+    df['inspection_month'] = df['inspection_date'].dt.month
+    df['inspection_day'] = df['inspection_date'].dt.day
+    df['inspection_dayofweek'] = df['inspection_date'].dt.dayofweek
+    df['inspection_quarter'] = df['inspection_date'].dt.quarter
+    df['inspection_dayofyear'] = df['inspection_date'].dt.dayofyear
+
+    # convert user_elite to the most recent year
+    df['user_most_recent_elite_year'] = df['user_elite'].apply(lambda x: x[-1] if x else np.nan)
+
+    # convert to datetime object
+    df['user_yelping_since'] = pd.to_datetime(pd.Series(df['user_yelping_since']))
+
+    # make categorical type
+    df['restaurant_attributes.ages_allowed'] = df['restaurant_attributes.ages_allowed'].astype('category')
+    df['restaurant_attributes.alcohol'] = df['restaurant_attributes.alcohol'].astype('category')
+    df['restaurant_attributes.attire'] = df['restaurant_attributes.attire'].astype('category')
+    df['restaurant_attributes.byob/corkage'] = df['restaurant_attributes.byob/corkage'].astype('category')
+    df['restaurant_attributes.noise_level'] = df['restaurant_attributes.noise_level'].astype('category')
+    df['restaurant_attributes.smoking'] = df['restaurant_attributes.smoking'].astype('category')
+    # getting error on below that some of the values are a list
+    df['restaurant_attributes.wi-fi'] = df['restaurant_attributes.wi-fi'].astype('category')
+    # df['restaurant_categories'] = df['restaurant_categories'].astype('category')
+    df['restaurant_city'] = df['restaurant_city'].astype('category')
+    df['restaurant_hours.friday.close'] = df['restaurant_hours.friday.close'].astype('category')
+    df['restaurant_hours.friday.open'] = df['restaurant_hours.friday.open'].astype('category')
+    df['restaurant_hours.monday.close'] = df['restaurant_hours.monday.close'].astype('category')
+    df['restaurant_hours.monday.open'] = df['restaurant_hours.monday.open'].astype('category')
+    df['restaurant_hours.saturday.close'] = df['restaurant_hours.saturday.close'].astype('category')
+    df['restaurant_hours.saturday.open'] = df['restaurant_hours.saturday.open'].astype('category')
+    df['restaurant_hours.sunday.close'] = df['restaurant_hours.sunday.close'].astype('category')
+    df['restaurant_hours.sunday.open'] = df['restaurant_hours.sunday.open'].astype('category')
+    df['restaurant_hours.thursday.close'] = df['restaurant_hours.thursday.close'].astype('category')
+    df['restaurant_hours.thursday.open'] = df['restaurant_hours.thursday.open'].astype('category')
+    df['restaurant_hours.tuesday.close'] = df['restaurant_hours.tuesday.close'].astype('category')
+    df['restaurant_hours.tuesday.open'] = df['restaurant_hours.tuesday.open'].astype('category')
+    df['restaurant_hours.wednesday.close'] = df['restaurant_hours.wednesday.close'].astype('category')
+    df['restaurant_hours.wednesday.open'] = df['restaurant_hours.wednesday.open'].astype('category')
+    df['restaurant_stars'] = df['restaurant_stars'].astype('category')
+
+    # flatten ambience into one column
+    casual = df[df['restaurant_attributes.ambience.casual'] == True].index
+    classy = df[df['restaurant_attributes.ambience.classy'] == True].index
+    divey = df[df['restaurant_attributes.ambience.divey'] == True].index
+    hipster = df[df['restaurant_attributes.ambience.hipster'] == True].index
+    intimate = df[df['restaurant_attributes.ambience.intimate'] == True].index
+    romantic = df[df['restaurant_attributes.ambience.romantic'] == True].index
+    touristy = df[df['restaurant_attributes.ambience.touristy'] == True].index
+    trendy = df[df['restaurant_attributes.ambience.trendy'] == True].index
+    upscale = df[df['restaurant_attributes.ambience.upscale'] == True].index
+    df.loc[casual, 'restaurant_ambience'] = 'casual'
+    df.loc[classy, 'restaurant_ambience'] = 'classy'
+    df.loc[divey, 'restaurant_ambience'] = 'divey'
+    df.loc[hipster, 'restaurant_ambience'] = 'hipster'
+    df.loc[intimate, 'restaurant_ambience'] = 'intimate'
+    df.loc[romantic, 'restaurant_ambience'] = 'romantic'
+    df.loc[touristy, 'restaurant_ambience'] = 'touristy'
+    df.loc[trendy, 'restaurant_ambience'] = 'trendy'
+    df.loc[upscale, 'restaurant_ambience'] = 'upscale'
+    df['restaurant_ambience'] = df['restaurant_ambience'].astype('category')
+    df.drop(['restaurant_attributes.ambience.casual', 'restaurant_attributes.ambience.classy', 'restaurant_attributes.ambience.divey', 'restaurant_attributes.ambience.hipster', 'restaurant_attributes.ambience.intimate', 'restaurant_attributes.ambience.romantic', 'restaurant_attributes.ambience.touristy', 'restaurant_attributes.ambience.trendy', 'restaurant_attributes.ambience.upscale'], axis=1, inplace=True)
+
+    # flatten music into one column
+    background_music = df[df['restaurant_attributes.music.background_music'] == True].index
+    dj = df[df['restaurant_attributes.music.dj'] == True].index
+    jukebox = df[df['restaurant_attributes.music.jukebox'] == True].index
+    karaoke = df[df['restaurant_attributes.music.karaoke'] == True].index
+    live = df[df['restaurant_attributes.music.live'] == True].index
+    video = df[df['restaurant_attributes.music.video'] == True].index
+    df.loc[background_music, 'restaurant_music'] = 'background_music'
+    df.loc[dj, 'restaurant_music'] = 'dj'
+    df.loc[jukebox, 'restaurant_music'] = 'jukebox'
+    df.loc[karaoke, 'restaurant_music'] = 'karaoke'
+    df.loc[live, 'restaurant_music'] = 'live'
+    df.loc[video, 'restaurant_music'] = 'video'
+    df['restaurant_music'] = df['restaurant_music'].astype('category')
+    df.drop(['restaurant_attributes.music.background_music', 'restaurant_attributes.music.dj', 'restaurant_attributes.music.jukebox', 'restaurant_attributes.music.karaoke', 'restaurant_attributes.music.live', 'restaurant_attributes.music.video'], axis=1, inplace=True)
+
+    # flatten parking into one column
+    garage = df[df['restaurant_attributes.parking.garage'] == True].index
+    lot = df[df['restaurant_attributes.parking.lot'] == True].index
+    street = df[df['restaurant_attributes.parking.street'] == True].index
+    valet = df[df['restaurant_attributes.parking.valet'] == True].index
+    validated = df[df['restaurant_attributes.parking.validated'] == True].index
+    df.loc[garage, 'restaurant_parking'] = 'garage'
+    df.loc[lot, 'restaurant_parking'] = 'lot'
+    df.loc[street, 'restaurant_parking'] = 'street'
+    df.loc[valet, 'restaurant_parking'] = 'valet'
+    df.loc[validated, 'restaurant_parking'] = 'validated'
+    df['restaurant_parking'] = df['restaurant_parking'].astype('category')
+    df.drop(['restaurant_attributes.parking.garage', 'restaurant_attributes.parking.lot', 'restaurant_attributes.parking.street', 'restaurant_attributes.parking.valet', 'restaurant_attributes.parking.validated'], axis=1, inplace=True)
+
+    # convert address to just the street name and zip code
+    df['restaurant_street'] = df['restaurant_full_address'].apply(lambda x: re.search('[A-z].*', x).group() if re.search('[A-z].*', x) is not None else np.nan).astype('category')
+    df['restaruant_zipcode'] = df['restaurant_full_address'].apply(lambda x: re.search('\d+$', x).group() if re.search('\d+$', x) is not None else np.nan).astype('category')
+    df.drop('restaurant_full_address', axis=1, inplace=True)
+
+    # # convert restaurant_categories into separate columns in a separate dataframe
+    # category_list = []
+    # for categories in df['restaurant_categories']:
+    #     category_list.append({'restaurant_category_'+i.lower().replace(' ', '_'): True for i in categories})
+    # # df = df.append(pd.DataFrame(category_list))
+    # category_df = df['restaurant_id'].append(pd.DataFrame(category_list))
+    # category_df.to_pickle('models/restaurant_categories_df.pkl')
+    # # add to hdf5 store later
+    df.drop('restaurant_categories', axis=1, inplace=True)
+
+    # convert first neighborhood listing in list to the only value
+    df['restaurant_neighborhood'] = df['restaurant_neighborhoods'].apply(lambda x: x[0] if x else np.nan)
+    df.drop('restaurant_neighborhoods', axis=1, inplace=True)
+
+    # sum the check in values
+    df['checkin_counts'] = df['checkin_info'].apply(lambda x: np.nan if pd.isnull(x) else sum(x.values())) 
+    df.drop('checkin_info', axis=1, inplace=True)
 
     return df
 
 
 def make_feature_response(feature_df, response_df):
-    # convert date to datetime object
+    # convert dates to datetime object
     response_df.inspection_date = pd.to_datetime(pd.Series(response_df.inspection_date))
+    feature_df.review_date = pd.to_datetime(pd.Series(feature_df.review_date))
     # combine features and response
     features_response = pd.merge(feature_df, response_df, on='restaurant_id')
 
-    # remove reviews and tips that occur after an inspection - canceled because then end up removing restaurants that trying to predict for. future reviews still have predictive power and frames with no reviews but other information still have predictive power
+    # remove reviews and tips that occur after an inspection - canceled because then end up removing restaurants that we are trying to predict for. future reviews still have predictive power and frames with no reviews but other information still have predictive power
     # no_future = features_response[features_response.review_date < features_response.inspection_date]
 
     return features_response
@@ -192,9 +331,9 @@ def make_feature_response(feature_df, response_df):
 def make_train_test():
     full_features = get_full_features()
     training_response = pd.read_csv("data/train_labels.csv", index_col=None)
-    training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', '*', '**', '***']
+    training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
     submission = pd.read_csv("data/SubmissionFormat.csv", index_col=None)
-    submission.columns = ['inspection_id', 'inspection_date', 'restaurant_id', '*', '**', '***']
+    submission.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
     # combine features and response
     training_df = make_feature_response(full_features, training_response)
     test_df = make_feature_response(full_features, submission)
@@ -210,72 +349,43 @@ def make_train_test():
     transformed_test_df['restaurant_id_number'] = restaurant_categories.categories.get_indexer(transformed_test_df.restaurant_id)
 
     # save dataframes
-    transformed_training_df.to_hdf('models/df_store.h5', 'transformed_training_df')
-    transformed_test_df.to_hdf('models/df_store.h5', 'transformed_test_df')
+    transformed_training_df.to_pickle('models/training_df.pkl')
+    transformed_test_df.to_pickle('models/test_df.pkl')
+
+    # save column/feature names since they have grown out of hand
+    with open('feature_names.txt', 'w') as f:
+        f.write('\n'.join(transformed_training_df.columns.tolist()))
+
+    store = pd.HDFStore('models/df_store.h5')
+    store.append('training_df', transformed_training_df, min_itemsize = {'values': 50})
+    store.append('test_df', transformed_test_df, min_itemsize = {'values': 50})
+    store.close()
+
     return transformed_training_df, transformed_test_df
 
 
-def load_train_df():
-    train_df = pd.read_hdf('models/df_store.h5', 'transformed_training_df')
-    return train_df
+def load_df(key, columns=None):
+    store = pd.HDFStore('models/df_store.h5')
+    if not columns:
+        df = store.select(key)
+    else:
+        df =store.select(key, "columns=columns")
+    return df
 
 
-def load_test_df():
-    test_df = pd.read_hdf('models/df_store.h5', 'transformed_test_df')
-    return test_df
+def load_dataframes_selects(column_list):
+    column_list.append(['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
+    train_df = load_df('training_df', column_list)
+    test_df = load_df('test_df', column_list)
+    return train_df, test_df
 
 
 def load_dataframes():
     # test refers to what is being submitted to the competition
     # running cross_val_score on train only
-    train_df = load_train_df()
-    test_df = load_test_df()
+    train_df = load_df('training_df')
+    test_df = load_df('test_df')
     return train_df, test_df
-
-
-# def flatten_reviews(label_df, reviews):
-#     """
-#         label_df: inspection dataframe with date, restaurant_id
-#         reviews: dataframe of reviews
-
-#         Returns all of the text of reviews previous to each
-#         inspection listed in label_df.
-#     """
-#     reviews_dictionary = {}
-#     N = len(label_df)
-
-#     for i, (pid, row) in enumerate(label_df.iterrows()):
-#         # we want to only get reviews for this restaurant that ocurred before the inspection
-#         pre_inspection_mask = (reviews.date < row.date) & (reviews.restaurant_id == row.restaurant_id)
-
-#         # pre-inspection reviews
-#         pre_inspection_reviews = reviews[pre_inspection_mask]
-
-#         # join the text
-#         all_text = ' '.join(pre_inspection_reviews.text)
-
-#         # store in dictionary
-#         reviews_dictionary[pid] = all_text
-
-#         if i % 2500 == 0:
-#             print '{} out of {}'.format(i, N)
-
-#     # return series in same order as the original data frame
-#     return pd.Series(reviews_dictionary)[label_df.index]
-
-
-# def train_and_save(reviews, train_labels, submission):
-#     train_text = flatten_reviews(train_labels, reviews)
-#     test_text = flatten_reviews(submission, reviews)
-#     joblib.dump(train_text, 'models/flattened_train_reviews')
-#     joblib.dump(test_text, 'models/flattened_test_reviews')
-#     return train_text, test_text
-
-
-# def load_flattened_reviews():
-#     train_text = joblib.load('models/flattened_train_reviews.pkl')
-#     test_text = joblib.load('models/flattened_test_reviews.pkl')
-#     return train_text, test_text
 
 
 def main():
@@ -286,7 +396,9 @@ def main():
     # train_and_save(reviews, train_labels, submission)
 
     make_train_test()
-    print("{} seconds elapsed.".format(time() - t0))
+    t1 = time()
+    print("{} seconds elapsed.".format(t1 - t0))
+    sendMessage.doneTextSend(t0, t1, 'data_grab')
 
 
 if __name__ == '__main__':

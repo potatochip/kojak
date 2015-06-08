@@ -25,6 +25,24 @@ def logShape(shape1, shape2):
 
 def text_to_length(df):
     s1 = df.shape
-    df.loc[:, 'review_text'] = df.review_text.apply(lambda x: len(x))
+    df['review_text_length'] = df.review_text.apply(lambda x: len(x))
+    df.drop('review_text', axis=1, inplace=True)
     logShape(s1, df.shape)
+    return df
+
+
+def review_text_tfidf(df, train=True):
+    s1 = df.shape
+    if train:
+        df['review_text_tfidf'] = pass
+    else:
+        df['review_text_tfidf'] = pass
+    df.drop('review_text', axis=1, inplace=True)
+    logShape(s1, df.shape)
+    return df
+
+
+def fill_nans(df, column_list, fill_value=0):
+    for column in column_list:
+        df[column].fillna(fill_value, inplace=True)
     return df

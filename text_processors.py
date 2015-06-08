@@ -52,24 +52,35 @@ def preprocess_text(df, filename):
 
 
 def tfidf_text(description='base', custom_vec=False):
-    # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus?review_text
+    # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus? doing otherwise gives the reviews for restaurants that get inspected more frequently altered weight
     with open('models/reviews_tips_original_text.pkl') as f:
         original_text = pickle.load(f)
     if custom_vec:
-        vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1,3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0, strip_accents='unicode')
+        vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1,3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0)
     else:
-        vec = TfidfVectorizer(stop_words='english', max_df=0.9, min_df=0.1)
+        vec = TfidfVectorizer(stop_words='english', max_df=0.9, min_df=2)
     vec = vec.fit(original_text)
     joblib.dump(vec, 'models/tfidf_vectorizer_'+description)
+    print("vectorizing finished")
 
     train_text = data_grab.load_train_df()
-    train_docs = vec.transform(train_text)
+    train_docs = vec.transform(train_text.review_text)
     joblib.dump(train_docs, 'models/tfidf_train_docs_'+description)
     del train_text, train_docs
+    print("train tfidf matrix created")
 
-    test_text = data_grab.load_text_df()
-    test_docs = vec.transform(test_text)
+    test_text = data_grab.load_test_df()
+    test_docs = vec.transform(test_text.review_text)
     joblib.dump(test_docs, 'models/tfidf_test_docs_'+description)
+    print("test tfidf matrix created")
+
+
+def load_tfidf_matrix(train=True, description='base'):
+    if train:
+        tfidf_matrix = joblib.load('models/tfidf_train_docs_'+description)
+    else:
+        tfidf_matrix = joblib.load('models/tfidf_test_docs_'+description)
+    return tfidf_matrix
 
 
 def main():
@@ -82,8 +93,7 @@ def main():
     # train_text, test_text = data_grab.load_flattened_reviews()
     # vec, train_tfidf = tfidf_custom_token_and_save(train_text)
 
-    train_df, test_df = data_grab.load_dataframes()
-    tfidf_text(train_df, test_df)
+    tfidf_text()
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))

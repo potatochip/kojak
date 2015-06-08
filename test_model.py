@@ -2,7 +2,7 @@
 
 import csv
 import logging
-import pymongo
+# import pymongo
 import metrics
 import data_grab
 import sendMessage
@@ -17,9 +17,10 @@ import matplotlib.pyplot as plt
 from time import time
 from pprint import pprint
 from datetime import datetime
+from itertools import combinations
 from prettytable import PrettyTable
 from progressbar import ProgressBar
-from pymongo.cursor import CursorType
+# from pymongo.cursor import CursorType
 
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
@@ -45,14 +46,11 @@ def logPrint(message):
     logger.info(message)
 
 
-def logTime(t0, t1, description):
-    logPrint("{} seconds elapsed from start after {}.".format(int(t1 - t0), description))
-
-
-def extract_features(df, features):
-    features = df[features]
-    response = df[['*', '**', '***']].astype(np.float64)
-    return features, response
+def extract_features(df):
+    features = df.drop(['score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
+    response = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)
+    transformed_response = df['transformed_score']
+    return features, response, transformed_response
 
 
 def features_review_text():
@@ -95,7 +93,7 @@ def griddy(X, y, pipeline):
 
 
 def fit_and_submit(X_train, y_train, test_df, pipeline, filename):
-    X_test, y_test = extract_features(test_df, features)
+    X_test, y_test, tranformed_y_test = extract_features(test_df)
 
     # predict the counts for the test set
     model = pipeline.fit(X_train, y_train)
@@ -107,8 +105,8 @@ def fit_and_submit(X_train, y_train, test_df, pipeline, filename):
     predictions = np.clip(predictions, 0, np.inf)
 
     # averaging by mean, SHOULD TRY ALT METHODS OF GROUPING SCORES TOGETHER
-    test_df[['*', '**', '***']] = predictions
-    submission_scores = test_df.groupby(['restaurant_id', 'inspection_date', 'inspection_id'])['*', '**', '***'].mean()
+    test_df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']] = predictions
+    submission_scores = test_df.groupby(['restaurant_id', 'inspection_date', 'inspection_id'])['score_lvl_1', 'score_lvl_2', 'score_lvl_3'].mean()
     temp = submission_scores.reset_index().set_index('inspection_id')
 
     # write the submission file
@@ -116,7 +114,7 @@ def fit_and_submit(X_train, y_train, test_df, pipeline, filename):
     indexed_prediction = temp.reindex(new_submission.index)
     if new_submission.shape != indexed_prediction.shape:
         logPrint("ERROR: Submission and prediction have different shapes")
-    new_submission.iloc[:, -3:] = np.round(indexed_prediction[['*', '**', '***']]).astype(int)
+    new_submission.iloc[:, -3:] = np.round(indexed_prediction[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']]).astype(int)
     new_submission.to_csv('predictions/'+filename)
 
     # print("Drivendata score of {}".format(contest_metric(predictions, train_targets)))
@@ -153,19 +151,17 @@ def score_multiple(X, y, estimator_list):
     return score_list
 
 
-def make_plots(X, y, description):
+def make_plots(X, y, transformed_y, description):
     plt.rcParams["figure.figsize"] = (10, 8)
 
-    # weigh scores according to competition weights and sum
-    trans_y = pd.DataFrame(y.multiply([1,3,5], axis=1).sum(axis=1), columns=['transformed_score'])
     data = pd.concat([X, y], axis=1)
-    trans_data = pd.concat([X, trans_y], axis=1)
+    transformed_data = pd.concat([X, transformed_y], axis=1)
 
     # response histograms
     y.hist(bins=50)
     plt.savefig('visuals/response_histogram')
     plt.close()
-    trans_y.hist(bins=100)
+    transformed_y.hist(bins=100)
     plt.savefig('visuals/transformed_response_histogram')
     plt.close()
 
@@ -180,8 +176,19 @@ def make_plots(X, y, description):
         sns.distplot(i[1])
         plt.savefig('visuals/feature_histogram_'+feature_title)
         plt.close()
-        plt.plot(i[1], trans_y, '.', alpha=.4)
+        plt.plot(i[1], transformed_y, '.', alpha=.4)
         plt.savefig('visuals/feature_transformed_score_interact_'+feature_title)
+        plt.close()
+
+    # coefficient plots for all features across transformed score and each individual score
+    formula = "transformed_score ~ " + " * ".join([i for i in X.columns.tolist()])
+    sns.coefplot(formula, transformed_data, intercept=True)
+    plt.savefig('visuals/transformed_score_coefficient_'+description)
+    plt.close()
+    for score_type in data.columns[2:]:
+        formula = score_type + " ~ " + " * ".join([i for i in X.columns.tolist()])
+        sns.coefplot(formula, data, intercept=True)
+        plt.savefig('visuals/transformed_score_coefficient_'+description)
         plt.close()
 
     # feature correlation plot
@@ -194,6 +201,16 @@ def make_plots(X, y, description):
     plt.close()
 
 
+def check_array_results(X, y, pipeline):
+    # confirm that computing scores as an array yields the same results as computing them individually
+    pass
+
+
+def verify_no_negative(X, y, pipeline):
+    # check whether scores are returned as negative and whether clipping required
+    pass
+
+
 def contest_scoring(X, y, pipeline):
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
     model = pipeline.fit(X_train, y_train)
@@ -202,20 +219,13 @@ def contest_scoring(X, y, pipeline):
     return score
 
 
-def multi_feature_test(feature_list, estimator_list):
-    for feature in feature_list:
+def multi_feature_test(X_train, y_train, transformed_y_train, feature_list, title_list):
+    for features in combinations(feature_list):
+        description = '_'.join(features)+'_'+'_'.join(title_list)
+        test_models(X_train[features], y_train, transformed_y_train, description)
 
 
-def main(features, submit_filename=None, submit_pipeline=None):
-    t0 = time()
-    train_df, test_df = data_grab.load_dataframes()
-    logTime(t0, time(), 'dataframes retrieved')
-
-    X_train, y_train = extract_features(train_df, features)
-    X_train = transformations.text_to_length(X_train)
-    test_df = transformations.text_to_length(test_df)
-    logTime(t0, time(), 'feature extraction')
-
+def test_models(X_train, y_train, transformed_y_train, description):
     # score models
     score_list = score_multiple(X_train, y_train, estimator_list)
     x = PrettyTable(["Datetime", "Estimator", "Score Mean", "Score StndDev", "Contest Score"])
@@ -228,18 +238,43 @@ def main(features, submit_filename=None, submit_pipeline=None):
         writer = csv.writer(f, dialect='excel')
         # writer.writerow(["Datetime", "Estimator", "Score Mean", "Score StndDev", "Contest Score"])
         writer.writerows(score_list)
-    logTime(t0, time(), 'model(s) scored')
+    logPrint('model(s) scored')
+
+    # make data exploration plots
+    make_plots(X_train, y_train, transformed_y_train, description)
+    logPrint('plots made')
+
+
+def transform(df, transformation):
+    transformed = transformation(df)
+    return transformed
+
+
+def main(submit_filename=None, submit_pipeline=None):
+    t0 = time()
+    # train_df, test_df = data_grab.load_dataframes_selects(feature_list)
+    train_df = pd.read_pickle('models/training_df.pkl')
+    logPrint('dataframes retrieved')
+
+    # transformations
+    X_train, y_train, transformed_y_train = extract_features(train_df)
+    title_list = []
+    for title, func in transformation_list:
+        title_list.append(title)
+        X_train = transform(X_train, func)
+        test_df = transform(test_df, func)
+    # X_train = transformations.text_to_length(X_train)
+    # test_df = transformations.text_to_length(test_df)
+    logPrint('feature extraction')
+
+    test_models(X_train, y_train, transformed_y_train, 'test')
 
     if submit_pipeline:
         # # make submission file from either a single estimator or a pipeline
         fit_and_submit(X_train, y_train, test_df, submit_pipeline, submit_filename)
-        logTime(t0, time(), 'fit and submit')
+        logPrint('fit and submit')
 
-        # # make data exploration plots
-    make_plots(X_train, y_train, 'text_length')
-    logTime(t0, time(), 'plots made')
-
-    logTime(t0, time(), 'entire run')
+    logPrint('entire run')
     sendMessage.doneTextSend(t0, time(), 'test_model')
 
 
@@ -262,15 +297,13 @@ def main(features, submit_filename=None, submit_pipeline=None):
 #         ('clf', estimator),
 # ])
 
-estimator_list = [LinearRegression()]
-
 # estimator_list = [LinearRegression(),
 #                     BaggingClassifier(),
 #                     RandomForestClassifier(),
 #                     MultinomialNB(),
 #                     SGDClassifier()]
 
-# text_clf = Pipeline([('vect', CountVectorizer(tokenizer=tokenize, stop_words='english',
+# pipeline = Pipeline([('vect', CountVectorizer(tokenizer=tokenize, stop_words='english',
 #                                                 max_df=0.8, max_features=200000, min_df=0.2,
 #                                                 ngram_range=(1, 3), use_idf=True)),
 #                     ('tfidf', TfidfTransformer()),
@@ -278,9 +311,13 @@ estimator_list = [LinearRegression()]
 #                                             alpha=1e-3, n_iter=5, random_state=42)),
 #                     ])
 
+from sklearn.linear_model import LinearRegression
+estimator_list = [LinearRegression()]
 
-features = ['time_delta', 'review_text']
+feature_list = ['time_delta', 'review_text']
 
+transformation_list = [('text_to_length', transformations.text_to_length),]
 
 if __name__ == '__main__':
-    main(features, submit_filename=None, submit_pipeline=None)
+    main(submit_filename=None, submit_pipeline=None)
+    main('test.')
