@@ -47,7 +47,7 @@ def logPrint(message):
 
 
 def extract_features(df):
-    features = df.drop(['score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
+    features = df.drop(['score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'], axis=1)
     response = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)
     transformed_response = df['transformed_score']
     return features, response, transformed_response
@@ -253,7 +253,9 @@ def transform(df, transformation):
 def main(submit_filename=None, submit_pipeline=None):
     t0 = time()
     # train_df, test_df = data_grab.load_dataframes_selects(feature_list)
+    # temp_feature_select = lambda x: x[['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'].extend(feature_list)]
     train_df = pd.read_pickle('models/training_df.pkl')
+    test_df = pd.read_pickle('models/test_df.pkl')
     logPrint('dataframes retrieved')
 
     # transformations
@@ -265,7 +267,7 @@ def main(submit_filename=None, submit_pipeline=None):
         test_df = transform(test_df, func)
     # X_train = transformations.text_to_length(X_train)
     # test_df = transformations.text_to_length(test_df)
-    logPrint('feature extraction')
+    logPrint('feature extraction finished')
 
     test_models(X_train, y_train, transformed_y_train, 'test')
 
@@ -279,10 +281,7 @@ def main(submit_filename=None, submit_pipeline=None):
 
 
 
-# from sklearn.naive_bayes import MultinomialNB
-# from sklearn.linear_model import SGDClassifier
 # from sklearn.ensemble import BaggingClassifier
-# from sklearn.linear_model import LinearRegression
 # from sklearn.ensemble import RandomForestClassifier
 # from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -312,11 +311,14 @@ def main(submit_filename=None, submit_pipeline=None):
 #                     ])
 
 from sklearn.linear_model import LinearRegression
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import SGDClassifier
 estimator_list = [LinearRegression()]
 
 feature_list = ['time_delta', 'review_text']
 
-transformation_list = [('text_to_length', transformations.text_to_length),]
+# transformation_list = [('text_to_count', transformations.review_text_count),]
+transformation_list = [('text_length', transformations.text_to_length)]
 
 if __name__ == '__main__':
     main(submit_filename=None, submit_pipeline=None)

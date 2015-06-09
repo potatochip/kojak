@@ -6,9 +6,11 @@ from progressbar import ProgressBar
 from time import time
 from nltk.stem.snowball import SnowballStemmer
 import data_grab
+import pandas as pd
 from textblob import TextBlob
 from sklearn.externals import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 
 stopwords = set(nltk.corpus.stopwords.words('english'))
 stemmer = SnowballStemmer("english")
@@ -51,25 +53,58 @@ def preprocess_text(df, filename):
     pbar.finish()
 
 
+def split_into_lemmas(message):
+    message = unicode(message, 'utf8').lower()
+    words = TextBlob(message).words
+    # for each word, take its "base form" = lemma 
+    return [word.lemma for word in words]
+
+
+def count_text(description='base', custom_vec=False):
+    with open('models/reviews_tips_original_text.pkl') as f:
+        original_text = pickle.load(f)
+    if custom_vec:
+        vec = CountVectorizer(analyzer=split_into_lemmas)
+    else:
+        vec = CountVectorizer(stop_words='english', max_df=0.9, min_df=2)
+    vec = vec.fit(original_text)
+    joblib.dump(vec, 'models/count_vectorizer_'+description)
+    print("vectorizing finished")
+
+    # train_text = data_grab.load_df('training_df')
+    train_text = pd.read_pickle('models/training_df.pkl')
+    train_docs = vec.transform(train_text.review_text)
+    joblib.dump(train_docs, 'models/count_train_docs_'+description)
+    del train_text, train_docs
+    print("train count matrix created")
+
+    # test_text = data_grab.load_df('test_df')
+    test_text = pd.read_pickle('models/test_df.pkl')
+    test_docs = vec.transform(test_text.review_text)
+    joblib.dump(test_docs, 'models/count_test_docs_'+description)
+    print("test count matrix created")
+
+
+
 def tfidf_text(description='base', custom_vec=False):
     # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus? doing otherwise gives the reviews for restaurants that get inspected more frequently altered weight
     with open('models/reviews_tips_original_text.pkl') as f:
         original_text = pickle.load(f)
     if custom_vec:
-        vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1,3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0)
+        vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1, 3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0)
     else:
         vec = TfidfVectorizer(stop_words='english', max_df=0.9, min_df=2)
     vec = vec.fit(original_text)
     joblib.dump(vec, 'models/tfidf_vectorizer_'+description)
     print("vectorizing finished")
 
-    train_text = data_grab.load_train_df()
+    train_text = data_grab.load_df('training_df')
     train_docs = vec.transform(train_text.review_text)
     joblib.dump(train_docs, 'models/tfidf_train_docs_'+description)
     del train_text, train_docs
     print("train tfidf matrix created")
 
-    test_text = data_grab.load_test_df()
+    test_text = data_grab.load_df('test_df')
     test_docs = vec.transform(test_text.review_text)
     joblib.dump(test_docs, 'models/tfidf_test_docs_'+description)
     print("test tfidf matrix created")
@@ -93,7 +128,7 @@ def main():
     # train_text, test_text = data_grab.load_flattened_reviews()
     # vec, train_tfidf = tfidf_custom_token_and_save(train_text)
 
-    tfidf_text()
+    count_text()
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))

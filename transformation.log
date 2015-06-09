@@ -96,3 +96,9 @@ INFO:__main__:Contest score of 1.22630496129
 INFO:__main__:85 seconds elapsed from start after model(s) scored.
 INFO:__main__:102 seconds elapsed from start after plots made.
 INFO:__main__:102 seconds elapsed from start after entire run.
+2015-06-09 14:50:42,578 : INFO : dataframes retrieved
+2015-06-09 14:52:33,232 : INFO : Shape before transformation of (4071065, 120) and after transformation of (4071065, 120)
+2015-06-09 14:52:54,730 : INFO : Shape before transformation of (1044138, 124) and after transformation of (1044138, 124)
+2015-06-09 14:52:54,736 : INFO : feature extraction finished
+2015-06-09 14:52:54,784 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-09 15:03:56,541 : INFO : dataframes retrieved

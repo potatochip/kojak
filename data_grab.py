@@ -1,11 +1,16 @@
+'''
+must use python3. cant store unicode in hdf5 in python2
+'''
+
 from time import time
 
 import numpy as np
 import pandas as pd
 import cPickle as pickle
+import unicodedata
 from pandas.io.json import json_normalize
 import sendMessage
-import yaml
+import json
 import re
 
 
@@ -61,6 +66,16 @@ import re
 #     train_targets = train_labels[['*', '**', '***']].astype(np.float64)
 #     return train_labels, train_targets
 
+def byteify(input):
+    if isinstance(input, dict):
+        return {byteify(key):byteify(value) for key,value in input.iteritems()}
+    elif isinstance(input, list):
+        return [byteify(element) for element in input]
+    elif isinstance(input, unicode):
+        return input.encode('utf-8')
+    else:
+        return input
+
 
 def get_submission():
     submission = pd.read_csv("data/SubmissionFormat.csv", index_col=0)
@@ -71,7 +86,8 @@ def get_reviews():
     data = []
     with open("data/yelp_academic_dataset_review.json", 'r') as f:
         for line in f:
-            data.append(yaml.safe_load(line)) # reads text from json as str rather than unicode as json module does
+            # reads text from json as str rather than unicode as json module does
+            data.append(byteify(json.loads(line)))
     reviews = json_normalize(data)
     return reviews
 
@@ -80,7 +96,7 @@ def get_tips():
     data = []
     with open("data/yelp_academic_dataset_tip.json", 'r') as f:
         for line in f:
-            data.append(yaml.safe_load(line))
+            data.append(byteify(json.loads(line)))
     tips = json_normalize(data)
     return tips
 
@@ -89,7 +105,7 @@ def get_users():
     data = []
     with open("data/yelp_academic_dataset_user.json", 'r') as f:
         for line in f:
-            data.append(yaml.safe_load(line))
+            data.append(byteify(json.loads(line)))
     users = json_normalize(data)
     users.columns = ['user_average_stars', 'user_compliments.cool', 'user_compliments.cute', 'user_compliments.funny', 'user_compliments.hot', 'user_compliments.list', 'user_compliments.more', 'user_compliments.note', 'user_compliments.photos', 'user_compliments.plain', 'user_compliments.profile', 'user_compliments.writer', 'user_elite', 'user_fans', 'user_friends', 'user_name', 'user_review_count', 'user_type', 'user_id', 'user_votes.cool', 'user_votes.funny', 'user_votes.useful', 'user_yelping_since']
     return users
@@ -99,7 +115,7 @@ def get_restaurants():
     data = []
     with open("data/yelp_academic_dataset_business.json", 'r') as f:
         for line in f:
-            data.append(yaml.safe_load(line))
+            data.append(byteify(json.loads(line)))
     restaurants = json_normalize(data)
     # duplicate columns exist for 'good for kids'
     shorter = restaurants['attributes.Good For Kids'].tolist()
@@ -120,7 +136,7 @@ def get_checkins():
     data = []
     with open("data/yelp_academic_dataset_checkin.json", 'r') as f:
         for line in f:
-            data.append(yaml.safe_load(line))
+            data.append(byteify(json.loads(line)))
     # checkins = json_normalize(data)
     # above returns like 200 columns of checkin_info
     checkins = pd.DataFrame(data)
@@ -172,8 +188,18 @@ def get_full_features():
 
 
 def transform_features(df):
+    '''
+    transform data into workable versions, get rid of unnecessary features.
+    format it so that it can be appended to an hdf5 store.
+    no mixed objects, no unicode (in python2)
+    '''
+
     # create number representing days passed between inspection date and review date
     df['time_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
+
+    # weigh scores according to competition weights and sum
+    scores = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)
+    df['transformed_score'] = scores.multiply([1, 3, 5], axis=1).sum(axis=1)
 
     # remove columns that have values without variance or are unnecessary
     df.drop('restaurant_type', axis=1, inplace=True)
@@ -185,10 +211,6 @@ def transform_features(df):
     df.drop('checkin_type', axis=1, inplace=True)
     # networkx this later
     df.drop('user_friends', axis=1, inplace=True)
-
-    # weigh scores according to competition weights and sum
-    scores = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)
-    df['transformed_score'] = scores.multiply([1,3,5], axis=1).sum(axis=1)
 
     # expand review_date and inspection_date into parts of year. could probably just get by with month or dayofyear
     df['review_year'] = df['inspection_date'].dt.year
@@ -206,20 +228,62 @@ def transform_features(df):
 
     # convert user_elite to the most recent year
     df['user_most_recent_elite_year'] = df['user_elite'].apply(lambda x: x[-1] if x else np.nan)
+    df.drop('user_elite', axis=1, inplace=True)
 
     # convert to datetime object
     df['user_yelping_since'] = pd.to_datetime(pd.Series(df['user_yelping_since']))
 
+    # convert to bool type
+    print('convert to bool type')
+    df['restaurant_attributes.accepts_credit_cards'] = df['restaurant_attributes.accepts_credit_cards'].astype('bool')
+    df['restaurant_attributes.byob'] = df['restaurant_attributes.byob'].astype('bool')
+    df['restaurant_attributes.by_appointment_only'] = df['restaurant_attributes.by_appointment_only'].astype('bool')
+    df['restaurant_attributes.caters'] = df['restaurant_attributes.caters'].astype('bool')
+    df['restaurant_attributes.coat_check'] = df['restaurant_attributes.coat_check'].astype('bool')
+    df['restaurant_attributes.corkage'] = df['restaurant_attributes.corkage'].astype('bool')
+    df['restaurant_attributes.delivery'] = df['restaurant_attributes.delivery'].astype('bool')
+    df['restaurant_attributes.dietary_restrictions.dairy-free'] = df['restaurant_attributes.dietary_restrictions.dairy-free'].astype('bool')
+    df['restaurant_attributes.dietary_restrictions.gluten-free'] = df['restaurant_attributes.dietary_restrictions.gluten-free'].astype('bool')
+    df['restaurant_attributes.dietary_restrictions.halal'] = df['restaurant_attributes.dietary_restrictions.halal'].astype('bool')
+    df['restaurant_attributes.dietary_restrictions.kosher'] = df['restaurant_attributes.dietary_restrictions.kosher'].astype('bool')
+    df['restaurant_attributes.dietary_restrictions.soy-free'] = df['restaurant_attributes.dietary_restrictions.soy-free'].astype('bool')
+    df['restaurant_attributes.dietary_restrictions.vegan'] = df['restaurant_attributes.dietary_restrictions.vegan'].astype('bool')
+    df['restaurant_attributes.dietary_restrictions.vegetarian'] = df['restaurant_attributes.dietary_restrictions.vegetarian'].astype('bool')
+    df['restaurant_attributes.dogs_allowed'] = df['restaurant_attributes.dogs_allowed'].astype('bool')
+    df['restaurant_attributes.drive-thr'] = df['restaurant_attributes.drive-thr'].astype('bool')
+    df['restaurant_attributes.good_for_dancing'] = df['restaurant_attributes.good_for_dancing'].astype('bool')
+    df['restaurant_attributes.good_for_groups'] = df['restaurant_attributes.good_for_groups'].astype('bool')
+    df['restaurant_attributes.good_for_breakfast'] = df['restaurant_attributes.good_for_breakfast'].astype('bool')
+    df['restaurant_attributes.good_for_brunch'] = df['restaurant_attributes.good_for_brunch'].astype('bool')
+    df['restaurant_attributes.good_for_dessert'] = df['restaurant_attributes.good_for_dessert'].astype('bool')
+    df['restaurant_attributes.good_for_dinner'] = df['restaurant_attributes.good_for_dinner'].astype('bool')
+    df['restaurant_attributes.good_for_latenight'] = df['restaurant_attributes.good_for_latenight'].astype('bool')
+    df['restaurant_attributes.good_for_lunch'] = df['restaurant_attributes.good_for_lunch'].astype('bool')
+    df['restaurant_attributes.good_for_kids'] = df['restaurant_attributes.good_for_kids'].astype('bool')
+    df['restaurant_attributes.happy_hour'] = df['restaurant_attributes.happy_hour'].astype('bool')
+    df['restaurant_attributes.has_tv'] = df['restaurant_attributes.has_tv'].astype('bool')
+    df['restaurant_attributes.open_24_hours'] = df['restaurant_attributes.open_24_hours'].astype('bool')
+    df['restaurant_attributes.order_at_counter'] = df['restaurant_attributes.order_at_counter'].astype('bool')
+    df['restaurant_attributes.outdoor_seating'] = df['restaurant_attributes.outdoor_seating'].astype('bool')
+    df['restaurant_attributes.payment_types.amex'] = df['restaurant_attributes.payment_types.amex'].astype('bool')
+    df['restaurant_attributes.payment_types.cash_only'] = df['restaurant_attributes.payment_types.cash_only'].astype('bool')
+    df['restaurant_attributes.payment_types.discover'] = df['restaurant_attributes.payment_types.discover'].astype('bool')
+    df['restaurant_attributes.payment_types.mastercard'] = df['restaurant_attributes.payment_types.mastercard'].astype('bool')
+    df['restaurant_attributes.payment_types.visa'] = df['restaurant_attributes.payment_types.visa'].astype('bool')
+    df['restaurant_attributes.take-out'] = df['restaurant_attributes.take-out'].astype('bool')
+    df['restaurant_attributes.takes_reservations'] = df['restaurant_attributes.takes_reservations'].astype('bool')
+    df['restaurant_attributes.waiter_service'] = df['restaurant_attributes.waiter_service'].astype('bool')
+    df['restaurant_attributes.wheelchair_accessible'] = df['restaurant_attributes.wheelchair_accessible'].astype('bool')
+
     # make categorical type
+    print('make categorical type')
     df['restaurant_attributes.ages_allowed'] = df['restaurant_attributes.ages_allowed'].astype('category')
     df['restaurant_attributes.alcohol'] = df['restaurant_attributes.alcohol'].astype('category')
     df['restaurant_attributes.attire'] = df['restaurant_attributes.attire'].astype('category')
     df['restaurant_attributes.byob/corkage'] = df['restaurant_attributes.byob/corkage'].astype('category')
     df['restaurant_attributes.noise_level'] = df['restaurant_attributes.noise_level'].astype('category')
     df['restaurant_attributes.smoking'] = df['restaurant_attributes.smoking'].astype('category')
-    # getting error on below that some of the values are a list
     df['restaurant_attributes.wi-fi'] = df['restaurant_attributes.wi-fi'].astype('category')
-    # df['restaurant_categories'] = df['restaurant_categories'].astype('category')
     df['restaurant_city'] = df['restaurant_city'].astype('category')
     df['restaurant_hours.friday.close'] = df['restaurant_hours.friday.close'].astype('category')
     df['restaurant_hours.friday.open'] = df['restaurant_hours.friday.open'].astype('category')
@@ -238,6 +302,7 @@ def transform_features(df):
     df['restaurant_stars'] = df['restaurant_stars'].astype('category')
 
     # flatten ambience into one column
+    print('flatten ambience into one column')
     casual = df[df['restaurant_attributes.ambience.casual'] == True].index
     classy = df[df['restaurant_attributes.ambience.classy'] == True].index
     divey = df[df['restaurant_attributes.ambience.divey'] == True].index
@@ -260,6 +325,7 @@ def transform_features(df):
     df.drop(['restaurant_attributes.ambience.casual', 'restaurant_attributes.ambience.classy', 'restaurant_attributes.ambience.divey', 'restaurant_attributes.ambience.hipster', 'restaurant_attributes.ambience.intimate', 'restaurant_attributes.ambience.romantic', 'restaurant_attributes.ambience.touristy', 'restaurant_attributes.ambience.trendy', 'restaurant_attributes.ambience.upscale'], axis=1, inplace=True)
 
     # flatten music into one column
+    print('flatten music into one column')
     background_music = df[df['restaurant_attributes.music.background_music'] == True].index
     dj = df[df['restaurant_attributes.music.dj'] == True].index
     jukebox = df[df['restaurant_attributes.music.jukebox'] == True].index
@@ -276,6 +342,7 @@ def transform_features(df):
     df.drop(['restaurant_attributes.music.background_music', 'restaurant_attributes.music.dj', 'restaurant_attributes.music.jukebox', 'restaurant_attributes.music.karaoke', 'restaurant_attributes.music.live', 'restaurant_attributes.music.video'], axis=1, inplace=True)
 
     # flatten parking into one column
+    print('flatten parking into one column')
     garage = df[df['restaurant_attributes.parking.garage'] == True].index
     lot = df[df['restaurant_attributes.parking.lot'] == True].index
     street = df[df['restaurant_attributes.parking.street'] == True].index
@@ -290,27 +357,41 @@ def transform_features(df):
     df.drop(['restaurant_attributes.parking.garage', 'restaurant_attributes.parking.lot', 'restaurant_attributes.parking.street', 'restaurant_attributes.parking.valet', 'restaurant_attributes.parking.validated'], axis=1, inplace=True)
 
     # convert address to just the street name and zip code
+    print('convert address to just the street name and zip code')
     df['restaurant_street'] = df['restaurant_full_address'].apply(lambda x: re.search('[A-z].*', x).group() if re.search('[A-z].*', x) is not None else np.nan).astype('category')
     df['restaruant_zipcode'] = df['restaurant_full_address'].apply(lambda x: re.search('\d+$', x).group() if re.search('\d+$', x) is not None else np.nan).astype('category')
     df.drop('restaurant_full_address', axis=1, inplace=True)
 
-    # # convert restaurant_categories into separate columns in a separate dataframe
+    # # convert restaurant_categories into separate columns
+    # print('convert restaurant_categories into separate columns')
     # category_list = []
     # for categories in df['restaurant_categories']:
     #     category_list.append({'restaurant_category_'+i.lower().replace(' ', '_'): True for i in categories})
-    # # df = df.append(pd.DataFrame(category_list))
-    # category_df = df['restaurant_id'].append(pd.DataFrame(category_list))
-    # category_df.to_pickle('models/restaurant_categories_df.pkl')
-    # # add to hdf5 store later
-    df.drop('restaurant_categories', axis=1, inplace=True)
+    # category_df = df['restaurant_id'].append(pd.DataFrame(category_list, dtype='bool'))
+    # # category_df.to_pickle('models/restaurant_categories_df.pkl')
+    # df = df.append(category_df)
+    # df.drop('restaurant_categories', axis=1, inplace=True)
 
     # convert first neighborhood listing in list to the only value
+    print('convert first neighborhood listing in list to the only value')
     df['restaurant_neighborhood'] = df['restaurant_neighborhoods'].apply(lambda x: x[0] if x else np.nan)
     df.drop('restaurant_neighborhoods', axis=1, inplace=True)
 
     # sum the check in values
-    df['checkin_counts'] = df['checkin_info'].apply(lambda x: np.nan if pd.isnull(x) else sum(x.values())) 
+    print('sum the check in values')
+    df['checkin_counts'] = df['checkin_info'].apply(lambda x: np.nan if pd.isnull(x) else sum(x.values()))
     df.drop('checkin_info', axis=1, inplace=True)
+
+    # force text to non-unicode
+    print('force text to non-unicode')
+    # df['restaurant_id'] = df['restaurant_id'].apply(lambda x: x.decode('utf-8'))
+    # df['review_text'] = df['review_text'].apply(lambda x: x.decode('utf-8'))
+    df['review_text'] = df['review_text'].apply(lambda x: unicodedata.normalize('NFKD', x).encode('ascii', 'ignore') if type(x) != str else x)
+    # df['user_id'] = df['user_id'].apply(lambda x: x.decode('utf-8'))
+    # df['restaurant_name'] = df['restaurant_name'].apply(lambda x: x.decode('utf-8'))
+    # df['restaurant_neighborhood'] = df['restaurant_neighborhood'].apply(lambda x: x.decode('utf-8'))
+
+    df = df.convert_objects()
 
     return df
 
@@ -328,6 +409,14 @@ def make_feature_response(feature_df, response_df):
     return features_response
 
 
+def clean_cols_for_hdf(data):
+    types = data.apply(lambda x: pd.lib.infer_dtype(x.values))
+    for col in types[types=='mixed'].index:
+        data[col] = data[col].astype(str)
+    # data[<your appropriate columns here>].fillna(0,inplace=True)
+    return data
+
+
 def make_train_test():
     full_features = get_full_features()
     training_response = pd.read_csv("data/train_labels.csv", index_col=None)
@@ -339,7 +428,9 @@ def make_train_test():
     test_df = make_feature_response(full_features, submission)
 
     # transform dataframes
+    print('transforming training set')
     transformed_training_df = transform_features(training_df)
+    print('transforming test set')
     transformed_test_df = transform_features(test_df)
 
     # convert restaurant_id's into numbers representing the restaurant then applying the same
@@ -347,18 +438,21 @@ def make_train_test():
     restaurant_categories = pd.Categorical.from_array(transformed_training_df.restaurant_id)
     transformed_training_df['restaurant_id_number'] = restaurant_categories.codes
     transformed_test_df['restaurant_id_number'] = restaurant_categories.categories.get_indexer(transformed_test_df.restaurant_id)
+    print('finished transformations')
 
     # save dataframes
     transformed_training_df.to_pickle('models/training_df.pkl')
     transformed_test_df.to_pickle('models/test_df.pkl')
+    print('both dataframes pickled')
 
     # save column/feature names since they have grown out of hand
     with open('feature_names.txt', 'w') as f:
         f.write('\n'.join(transformed_training_df.columns.tolist()))
 
     store = pd.HDFStore('models/df_store.h5')
-    store.append('training_df', transformed_training_df, min_itemsize = {'values': 50})
-    store.append('test_df', transformed_test_df, min_itemsize = {'values': 50})
+    store.append('training_df', transformed_training_df, data_columns=True, dropna=False)
+    print('training_df in hdfstore')
+    store.append('test_df', transformed_test_df, data_columns=True, dropna=False)
     store.close()
 
     return transformed_training_df, transformed_test_df
@@ -369,12 +463,13 @@ def load_df(key, columns=None):
     if not columns:
         df = store.select(key)
     else:
-        df =store.select(key, "columns=columns")
+        df = store.select(key, "columns=columns")
+    store.close()
     return df
 
 
 def load_dataframes_selects(column_list):
-    column_list.append(['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
+    column_list.extend(['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
     train_df = load_df('training_df', column_list)
     test_df = load_df('test_df', column_list)
     return train_df, test_df

@@ -1,5 +1,6 @@
 import logging
 
+from sklearn.externals import joblib
 from time import time
 import pandas as pd
 import numpy as np
@@ -31,12 +32,23 @@ def text_to_length(df):
     return df
 
 
-def review_text_tfidf(df, train=True):
+def review_text_tfidf(df, train=True, description='base'):
     s1 = df.shape
     if train:
-        df['review_text_tfidf'] = pass
+        df['review_text_tfidf'] = joblib.load('models/tfidf_train_docs_'+description)
     else:
-        df['review_text_tfidf'] = pass
+        df['review_text_tfidf'] = joblib.load('models/tfidf_test_docs_'+description)
+    df.drop('review_text', axis=1, inplace=True)
+    logShape(s1, df.shape)
+    return df
+
+
+def review_text_count(df, train=True, description='base'):
+    s1 = df.shape
+    if train:
+        df['review_text_count'] = joblib.load('models/count_train_docs_'+description)
+    else:
+        df['review_text_count'] = joblib.load('models/count_test_docs_'+description)
     df.drop('review_text', axis=1, inplace=True)
     logShape(s1, df.shape)
     return df
@@ -46,3 +58,4 @@ def fill_nans(df, column_list, fill_value=0):
     for column in column_list:
         df[column].fillna(fill_value, inplace=True)
     return df
+
