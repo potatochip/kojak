@@ -8,6 +8,7 @@ import data_grab
 import sendMessage
 import transformations
 import text_processors
+import visual_exploration
 
 import numpy as np
 import pandas as pd
@@ -20,6 +21,7 @@ from datetime import datetime
 from itertools import combinations
 from prettytable import PrettyTable
 from progressbar import ProgressBar
+from scipy.sparse import coo_matrix, hstack
 # from pymongo.cursor import CursorType
 
 from sklearn.pipeline import Pipeline
@@ -92,34 +94,6 @@ def griddy(X, y, pipeline):
         print "\t%s: %r" % (param_name, best_parameters[param_name])
 
 
-def fit_and_submit(X_train, y_train, test_df, pipeline, filename):
-    X_test, y_test, tranformed_y_test = extract_features(test_df)
-
-    # predict the counts for the test set
-    model = pipeline.fit(X_train, y_train)
-    predictions = model.predict(X_test)
-
-    # clip the predictions so they are all greater than or equal to zero
-    # since we can't have negative counts of violations
-    # SHOULD TRY CLIPPING AFTER AVERAGING SCORES ALSO
-    predictions = np.clip(predictions, 0, np.inf)
-
-    # averaging by mean, SHOULD TRY ALT METHODS OF GROUPING SCORES TOGETHER
-    test_df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']] = predictions
-    submission_scores = test_df.groupby(['restaurant_id', 'inspection_date', 'inspection_id'])['score_lvl_1', 'score_lvl_2', 'score_lvl_3'].mean()
-    temp = submission_scores.reset_index().set_index('inspection_id')
-
-    # write the submission file
-    new_submission = data_grab.get_submission()
-    indexed_prediction = temp.reindex(new_submission.index)
-    if new_submission.shape != indexed_prediction.shape:
-        logPrint("ERROR: Submission and prediction have different shapes")
-    new_submission.iloc[:, -3:] = np.round(indexed_prediction[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']]).astype(int)
-    new_submission.to_csv('predictions/'+filename)
-
-    # print("Drivendata score of {}".format(contest_metric(predictions, train_targets)))
-
-
 def contest_metric(numpy_array_predictions, numpy_array_actual_values):
     return metrics.weighted_rmsle(numpy_array_predictions, numpy_array_actual_values,
             weights=metrics.KEEPING_IT_CLEAN_WEIGHTS)
@@ -133,7 +107,7 @@ def score_model(X, y, pipeline):
     return mean_score, std_dev_score
 
 
-def score_multiple(X, y, estimator_list):
+def score_multiple(X, y, estimator_list, description):
     score_list = []
     for estimator in estimator_list:
         pipeline = Pipeline([
@@ -142,63 +116,14 @@ def score_multiple(X, y, estimator_list):
             ('est', estimator),
         ])
         logPrint("Scoring {}".format(str(pipeline)))
+        logPrint('{} model scored'.format(description))
         mean_score, std_dev_score = score_model(X, y, pipeline)
         contest_score = contest_scoring(X, y, pipeline)
         dt = str(datetime.now())
         estimator_name = str(estimator).split('(')[0]
-        score_list.append((dt, estimator_name, mean_score, std_dev_score, contest_score))
+        score_list.append((dt, estimator_name, description, mean_score, std_dev_score, contest_score))
         print('\n')
     return score_list
-
-
-def make_plots(X, y, transformed_y, description):
-    plt.rcParams["figure.figsize"] = (10, 8)
-
-    data = pd.concat([X, y], axis=1)
-    transformed_data = pd.concat([X, transformed_y], axis=1)
-
-    # response histograms
-    y.hist(bins=50)
-    plt.savefig('visuals/response_histogram')
-    plt.close()
-    transformed_y.hist(bins=100)
-    plt.savefig('visuals/transformed_response_histogram')
-    plt.close()
-
-    # features histograms
-    X.hist(bins=100)
-    plt.savefig('visuals/features_histograms_'+description)
-    plt.close()
-
-    # histograms and interaction plots for each feature
-    for i in X.iteritems():
-        feature_title = i[0]
-        sns.distplot(i[1])
-        plt.savefig('visuals/feature_histogram_'+feature_title)
-        plt.close()
-        plt.plot(i[1], transformed_y, '.', alpha=.4)
-        plt.savefig('visuals/feature_transformed_score_interact_'+feature_title)
-        plt.close()
-
-    # coefficient plots for all features across transformed score and each individual score
-    formula = "transformed_score ~ " + " * ".join([i for i in X.columns.tolist()])
-    sns.coefplot(formula, transformed_data, intercept=True)
-    plt.savefig('visuals/transformed_score_coefficient_'+description)
-    plt.close()
-    for score_type in data.columns[2:]:
-        formula = score_type + " ~ " + " * ".join([i for i in X.columns.tolist()])
-        sns.coefplot(formula, data, intercept=True)
-        plt.savefig('visuals/transformed_score_coefficient_'+description)
-        plt.close()
-
-    # feature correlation plot
-    f, ax = plt.subplots(figsize=(10, 10))
-    cmap = sns.blend_palette(["#00008B", "#6A5ACD", "#F0F8FF",
-                              "#FFE6F8", "#C71585", "#8B0000"], as_cmap=True)
-    sns.corrplot(data, annot=False, diag_names=False, cmap=cmap)
-    ax.grid(False)
-    plt.savefig('visuals/correlation_plot_'+description)
-    plt.close()
 
 
 def check_array_results(X, y, pipeline):
@@ -219,30 +144,32 @@ def contest_scoring(X, y, pipeline):
     return score
 
 
-def multi_feature_test(X_train, y_train, transformed_y_train, feature_list, title_list):
-    for features in combinations(feature_list):
-        description = '_'.join(features)+'_'+'_'.join(title_list)
-        test_models(X_train[features], y_train, transformed_y_train, description)
+def multi_feature_test(X_train, y_train, trans_list):
+    combo_list = []
+    for num in range(1, len(feature_list)+1):
+        combo_list.extend([list(i) for i in combinations(feature_list, num)])
+
+    for features in combo_list:
+        description = '+'.join(features)+'/'+'+'.join(trans_list)
+        test_models(X_train[features], y_train, description)
 
 
-def test_models(X_train, y_train, transformed_y_train, description):
+def test_models(X_train, y_train, description):
+    if vectorized_docs:
+        X_train = hstack([vectorized_docs[1], coo_matrix(X_train)])
+
     # score models
-    score_list = score_multiple(X_train, y_train, estimator_list)
-    x = PrettyTable(["Datetime", "Estimator", "Score Mean", "Score StndDev", "Contest Score"])
-    x.align["City name"] = "l"
+    score_list = score_multiple(X_train, y_train, estimator_list, description)
+    x = PrettyTable(["Datetime", "Estimator", "Description", "Score Mean", "Score StndDev", "Contest Score"])
     x.padding_width = 1
     for i in score_list:
         x.add_row(i)
     print x
+    print('\n')
     with open('models/estimator_log.csv', 'a') as f:
         writer = csv.writer(f, dialect='excel')
-        # writer.writerow(["Datetime", "Estimator", "Score Mean", "Score StndDev", "Contest Score"])
+        # writer.writerow(["Datetime", "Estimator", "Description", "Score Mean", "Score StndDev", "Contest Score"])
         writer.writerows(score_list)
-    logPrint('model(s) scored')
-
-    # make data exploration plots
-    make_plots(X_train, y_train, transformed_y_train, description)
-    logPrint('plots made')
 
 
 def transform(df, transformation):
@@ -250,33 +177,37 @@ def transform(df, transformation):
     return transformed
 
 
-def main(submit_filename=None, submit_pipeline=None):
+def main():
     t0 = time()
     # train_df, test_df = data_grab.load_dataframes_selects(feature_list)
     # temp_feature_select = lambda x: x[['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'].extend(feature_list)]
-    train_df = pd.read_pickle('models/training_df.pkl')
-    test_df = pd.read_pickle('models/test_df.pkl')
+    # train_df = pd.read_pickle('models/training_df.pkl')
+    # test_df = pd.read_pickle('models/test_df.pkl')
+    train_df = data_grab.get_selects('train', feature_list)
     logPrint('dataframes retrieved')
 
     # transformations
-    X_train, y_train, transformed_y_train = extract_features(train_df)
-    title_list = []
-    for title, func in transformation_list:
-        title_list.append(title)
-        X_train = transform(X_train, func)
-        test_df = transform(test_df, func)
-    # X_train = transformations.text_to_length(X_train)
-    # test_df = transformations.text_to_length(test_df)
+    trans_list = []
+    if transformation_list:
+        for title, func in transformation_list:
+            trans_list.append(title)
+            print("Training set transform")
+            train_df = transform(train_df, func)
     logPrint('feature extraction finished')
 
-    test_models(X_train, y_train, transformed_y_train, 'test')
+    X_train, y_train, transformed_y_train = extract_features(train_df)
+    print X_train.head()
+    if vectorized_docs:
+        trans_list.append(vectorized_docs[0])
 
-    if submit_pipeline:
-        # # make submission file from either a single estimator or a pipeline
-        fit_and_submit(X_train, y_train, test_df, submit_pipeline, submit_filename)
-        logPrint('fit and submit')
+    multi_feature_test(X_train, y_train, trans_list)
 
-    logPrint('entire run')
+    # make data exploration plots
+    description = '_'.join(feature_list)+'_'+'_'.join(trans_list)
+    visual_exploration.make_plots(X_train[feature_list], y_train, transformed_y_train, description)
+    logPrint('plots made')
+
+    logPrint('entire run finished')
     sendMessage.doneTextSend(t0, time(), 'test_model')
 
 
@@ -313,13 +244,22 @@ def main(submit_filename=None, submit_pipeline=None):
 from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
+# estimator_list = [LinearRegression(),
+#                     MultinomialNB(),
+#                     SGDClassifier()]
+
 estimator_list = [LinearRegression()]
 
-feature_list = ['time_delta', 'review_text']
 
-# transformation_list = [('text_to_count', transformations.review_text_count),]
-transformation_list = [('text_length', transformations.text_to_length)]
+feature_list = ['time_delta', 'restaurant_id']
+# feature_list = ['time_delta', 'review_text']
+
+print("Grabbing vectorized docs")
+vectorized_docs = text_processors.load_count_docs()
+# vectorized_docs = None
+
+# transformation_list = [('text_length', transformations.text_to_length)]
+transformation_list = None
 
 if __name__ == '__main__':
-    main(submit_filename=None, submit_pipeline=None)
-    main('test.')
+    main()

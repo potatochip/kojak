@@ -102,3 +102,202 @@ INFO:__main__:102 seconds elapsed from start after entire run.
 2015-06-09 14:52:54,736 : INFO : feature extraction finished
 2015-06-09 14:52:54,784 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
 2015-06-09 15:03:56,541 : INFO : dataframes retrieved
+2015-06-09 15:12:49,484 : INFO : dataframes retrieved
+2015-06-09 15:14:00,254 : INFO : Shape before transformation of (4071065, 120) and after transformation of (4071065, 120)
+2015-06-09 15:14:12,848 : INFO : Shape before transformation of (1044138, 124) and after transformation of (1044138, 124)
+2015-06-09 15:14:12,853 : INFO : feature extraction finished
+2015-06-09 15:14:12,901 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 11:12:12,408 : INFO : dataframes retrieved
+2015-06-10 11:12:54,200 : INFO : Shape before transformation of (4071065, 124) and after transformation of (4071065, 124)
+2015-06-10 11:13:01,291 : INFO : Shape before transformation of (1044138, 128) and after transformation of (1044138, 128)
+2015-06-10 11:13:01,294 : INFO : feature extraction finished
+2015-06-10 11:13:01,345 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 11:17:42,250 : INFO : dataframes retrieved
+2015-06-10 11:18:24,753 : INFO : Shape before transformation of (4071065, 124) and after transformation of (4071065, 124)
+2015-06-10 11:18:30,561 : INFO : Shape before transformation of (1044138, 128) and after transformation of (1044138, 128)
+2015-06-10 11:18:30,563 : INFO : feature extraction finished
+2015-06-10 11:18:30,577 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 11:25:08,715 : INFO : dataframes retrieved
+2015-06-10 11:25:43,522 : INFO : Shape before transformation of (4071065, 124) and after transformation of (4071065, 124)
+2015-06-10 11:25:49,410 : INFO : Shape before transformation of (1044138, 128) and after transformation of (1044138, 128)
+2015-06-10 11:25:49,411 : INFO : feature extraction finished
+2015-06-10 11:25:49,414 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 11:27:46,488 : INFO : dataframes retrieved
+2015-06-10 11:28:43,479 : INFO : Shape before transformation of (4071065, 124) and after transformation of (4071065, 124)
+2015-06-10 11:28:51,492 : INFO : Shape before transformation of (1044138, 128) and after transformation of (1044138, 128)
+2015-06-10 11:28:51,498 : INFO : feature extraction finished
+2015-06-10 11:28:51,503 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:01:03,927 : INFO : dataframes retrieved
+2015-06-10 12:01:21,982 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 12:01:24,559 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 12:01:24,560 : INFO : feature extraction finished
+2015-06-10 12:01:24,567 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:20:06,677 : INFO : dataframes retrieved
+2015-06-10 12:20:22,084 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 12:20:24,118 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 12:20:24,118 : INFO : feature extraction finished
+2015-06-10 12:20:24,186 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:20:37,036 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 12:20:42,767 : INFO : Contest score of 1.22786789307
+2015-06-10 12:20:42,844 : INFO : model(s) scored
+2015-06-10 12:30:28,176 : INFO : dataframes retrieved
+2015-06-10 12:30:51,335 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 12:30:54,210 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 12:30:54,210 : INFO : feature extraction finished
+2015-06-10 12:30:54,344 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:31:10,755 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 12:31:17,597 : INFO : Contest score of 1.22786789307
+2015-06-10 12:31:17,668 : INFO : model(s) scored
+2015-06-10 12:36:27,115 : INFO : dataframes retrieved
+2015-06-10 12:36:48,860 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 12:36:52,022 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 12:36:52,023 : INFO : feature extraction finished
+2015-06-10 12:36:52,145 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:37:05,507 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 12:37:11,601 : INFO : Contest score of 1.22786789307
+2015-06-10 12:37:11,665 : INFO : model(s) scored
+2015-06-10 12:37:45,395 : INFO : plots made
+2015-06-10 12:40:21,237 : INFO : dataframes retrieved
+2015-06-10 12:40:31,378 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 12:40:32,982 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 12:40:32,982 : INFO : feature extraction finished
+2015-06-10 12:40:38,885 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:40:54,064 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 12:41:01,071 : INFO : Contest score of 1.22786789307
+2015-06-10 12:41:01,145 : INFO : model(s) scored
+2015-06-10 12:41:40,928 : INFO : plots made
+2015-06-10 12:41:41,004 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:41:53,177 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 12:41:58,701 : INFO : Contest score of 1.22848088478
+2015-06-10 12:41:58,768 : INFO : model(s) scored
+2015-06-10 12:42:28,122 : INFO : plots made
+2015-06-10 12:42:28,145 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:42:41,371 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 12:42:47,620 : INFO : Contest score of 1.22786756554
+2015-06-10 12:42:47,690 : INFO : model(s) scored
+2015-06-10 12:43:49,759 : INFO : plots made
+2015-06-10 12:43:49,759 : INFO : entire run
+2015-06-10 12:51:55,339 : INFO : dataframes retrieved
+2015-06-10 12:52:03,561 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 12:52:04,632 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 12:52:04,633 : INFO : feature extraction finished
+2015-06-10 12:52:07,659 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:52:21,727 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 12:52:28,082 : INFO : Contest score of 1.22786789307
+2015-06-10 12:52:28,154 : INFO : model(s) scored
+2015-06-10 12:52:28,174 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:52:42,216 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 12:52:48,381 : INFO : Contest score of 1.22848088478
+2015-06-10 12:52:48,430 : INFO : model(s) scored
+2015-06-10 12:52:48,467 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:53:02,955 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 12:53:08,718 : INFO : Contest score of 1.22786756554
+2015-06-10 12:53:08,783 : INFO : model(s) scored
+2015-06-10 12:55:51,162 : INFO : dataframes retrieved
+2015-06-10 12:56:00,843 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 12:56:01,487 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 12:56:01,488 : INFO : feature extraction finished
+2015-06-10 12:56:04,710 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:56:18,937 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 12:56:24,835 : INFO : Contest score of 1.22786789307
+2015-06-10 12:56:24,888 : INFO : model scored
+2015-06-10 12:56:24,955 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:56:39,065 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 12:56:48,265 : INFO : Contest score of 1.22848088478
+2015-06-10 12:56:48,321 : INFO : model scored
+2015-06-10 12:56:48,364 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 12:57:04,468 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 12:57:10,724 : INFO : Contest score of 1.22786756554
+2015-06-10 12:57:10,794 : INFO : model scored
+2015-06-10 13:02:03,230 : INFO : dataframes retrieved
+2015-06-10 13:02:13,548 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 13:02:49,970 : INFO : dataframes retrieved
+2015-06-10 13:03:01,407 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 13:03:02,746 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 13:03:02,746 : INFO : feature extraction finished
+2015-06-10 13:03:06,726 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:03:23,094 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 13:03:30,248 : INFO : Contest score of 1.22786789307
+2015-06-10 13:03:30,323 : INFO : model scored
+2015-06-10 13:03:30,385 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:03:46,472 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 13:03:54,626 : INFO : Contest score of 1.22848088478
+2015-06-10 13:03:54,699 : INFO : model scored
+2015-06-10 13:03:54,756 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:04:11,562 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 13:04:18,700 : INFO : Contest score of 1.22786756554
+2015-06-10 13:04:18,762 : INFO : model scored
+2015-06-10 13:05:51,596 : INFO : plots made
+2015-06-10 13:05:51,597 : INFO : entire run
+2015-06-10 13:08:20,488 : INFO : dataframes retrieved
+2015-06-10 13:08:29,038 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 13:08:30,382 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 13:08:30,382 : INFO : feature extraction finished
+2015-06-10 13:08:34,109 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:08:47,634 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 13:08:53,367 : INFO : Contest score of 1.22786789307
+2015-06-10 13:08:53,417 : INFO : model scored
+2015-06-10 13:08:53,447 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:09:06,378 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 13:09:12,931 : INFO : Contest score of 1.22848088478
+2015-06-10 13:09:12,987 : INFO : model scored
+2015-06-10 13:09:13,030 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:09:27,625 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 13:09:34,021 : INFO : Contest score of 1.22786756554
+2015-06-10 13:09:34,107 : INFO : model scored
+2015-06-10 13:10:54,488 : INFO : plots made
+2015-06-10 13:10:54,488 : INFO : entire run
+2015-06-10 13:15:27,318 : INFO : dataframes retrieved
+2015-06-10 13:15:35,510 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 13:15:36,690 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 13:15:36,691 : INFO : feature extraction finished
+2015-06-10 13:15:40,479 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:15:53,030 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 13:15:59,254 : INFO : Contest score of 1.22786789307
+2015-06-10 13:15:59,332 : INFO : model scored
+2015-06-10 13:15:59,365 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:16:12,489 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 13:16:19,137 : INFO : Contest score of 1.22848088478
+2015-06-10 13:16:19,207 : INFO : model scored
+2015-06-10 13:16:19,266 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:16:34,164 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 13:16:40,719 : INFO : Contest score of 1.22786756554
+2015-06-10 13:16:40,792 : INFO : model scored
+2015-06-10 13:19:48,407 : INFO : dataframes retrieved
+2015-06-10 13:19:57,038 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 13:19:57,718 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 13:19:57,719 : INFO : feature extraction finished
+2015-06-10 13:20:02,510 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:20:20,472 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 13:20:26,742 : INFO : Contest score of 1.22786789307
+2015-06-10 13:20:26,800 : INFO : time_delta:text_length model scored
+2015-06-10 13:20:26,869 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:20:40,390 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 13:20:46,659 : INFO : Contest score of 1.22848088478
+2015-06-10 13:20:46,711 : INFO : review_text:text_length model scored
+2015-06-10 13:20:46,759 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:21:01,129 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 13:21:07,274 : INFO : Contest score of 1.22786756554
+2015-06-10 13:21:07,337 : INFO : time_delta/review_text:text_length model scored
+2015-06-10 13:22:03,630 : INFO : plots made
+2015-06-10 13:22:03,630 : INFO : entire run finished
+2015-06-10 13:25:15,646 : INFO : dataframes retrieved
+2015-06-10 13:25:25,139 : INFO : Shape before transformation of (4071065, 129) and after transformation of (4071065, 129)
+2015-06-10 13:25:25,806 : INFO : Shape before transformation of (1044138, 133) and after transformation of (1044138, 133)
+2015-06-10 13:25:25,806 : INFO : feature extraction finished
+2015-06-10 13:25:30,802 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:25:44,028 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 13:25:49,768 : INFO : Contest score of 1.22786789307
+2015-06-10 13:25:49,820 : INFO : time_delta:text_length model scored
+2015-06-10 13:25:49,853 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:26:01,960 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 13:26:08,497 : INFO : Contest score of 1.22848088478
+2015-06-10 13:26:08,555 : INFO : review_text:text_length model scored
+2015-06-10 13:26:08,607 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 13:26:23,388 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 13:26:29,635 : INFO : Contest score of 1.22786756554
+2015-06-10 13:26:29,704 : INFO : time_delta/review_text:text_length model scored
+2015-06-10 13:27:32,246 : INFO : plots made
+2015-06-10 13:27:32,246 : INFO : entire run finished
+2015-06-10 16:03:36,488 : INFO : Shape before transformation of (4071065, 7) and after transformation of (4071065, 7)
+2015-06-10 16:06:55,740 : INFO : Shape before transformation of (1044138, 7) and after transformation of (1044138, 7)

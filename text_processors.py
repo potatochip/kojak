@@ -110,12 +110,16 @@ def tfidf_text(description='base', custom_vec=False):
     print("test tfidf matrix created")
 
 
-def load_tfidf_matrix(train=True, description='base'):
-    if train:
-        tfidf_matrix = joblib.load('models/tfidf_train_docs_'+description)
-    else:
-        tfidf_matrix = joblib.load('models/tfidf_test_docs_'+description)
-    return tfidf_matrix
+def load_tfidf_docs(description='base'):
+    train_docs = joblib.load('models/tfidf_train_docs_'+description)
+    test_docs = joblib.load('models/tfidf_test_docs_'+description)
+    return ('review_tfidf', train_docs, test_docs)
+
+
+def load_count_docs(description='base'):
+    train_docs = joblib.load('models/count_train_docs_'+description)
+    test_docs = joblib.load('models/count_test_docs_'+description)
+    return ('review_bag_of_words', train_docs, test_docs)
 
 
 def main():
