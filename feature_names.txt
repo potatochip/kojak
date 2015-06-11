@@ -1,132 +1,132 @@
-restaurant_id
-review_date
-tip_likes
-review_stars
-review_text
-user_id
-review_votes_cool
-review_votes_funny
-review_votes_useful
-user_average_stars
-user_compliments_cool
-user_compliments_cute
-user_compliments_funny
-user_compliments_hot
-user_compliments_list
-user_compliments_more
-user_compliments_note
-user_compliments_photos
-user_compliments_plain
-user_compliments_profile
-user_compliments_writer
-user_fans
-user_name
-user_review_count
-user_votes_cool
-user_votes_funny
-user_votes_useful
-user_yelping_since
-restaurant_attributes_accepts_credit_cards
-restaurant_attributes_ages_allowed
-restaurant_attributes_alcohol
-restaurant_attributes_attire
-restaurant_attributes_byob
-restaurant_attributes_byob/corkage
-restaurant_attributes_by_appointment_only
-restaurant_attributes_caters
-restaurant_attributes_coat_check
-restaurant_attributes_corkage
-restaurant_attributes_delivery
-restaurant_attributes_dietary_restrictions_dairy-free
-restaurant_attributes_dietary_restrictions_gluten-free
-restaurant_attributes_dietary_restrictions_halal
-restaurant_attributes_dietary_restrictions_kosher
-restaurant_attributes_dietary_restrictions_soy-free
-restaurant_attributes_dietary_restrictions_vegan
-restaurant_attributes_dietary_restrictions_vegetarian
-restaurant_attributes_dogs_allowed
-restaurant_attributes_drive-thr
-restaurant_attributes_good_for_dancing
-restaurant_attributes_good_for_groups
-restaurant_attributes_good_for_breakfast
-restaurant_attributes_good_for_brunch
-restaurant_attributes_good_for_dessert
-restaurant_attributes_good_for_dinner
-restaurant_attributes_good_for_latenight
-restaurant_attributes_good_for_lunch
-restaurant_attributes_good_for_kids
-restaurant_attributes_happy_hour
-restaurant_attributes_has_tv
-restaurant_attributes_noise_level
-restaurant_attributes_open_24_hours
-restaurant_attributes_order_at_counter
-restaurant_attributes_outdoor_seating
-restaurant_attributes_payment_types_amex
-restaurant_attributes_payment_types_cash_only
-restaurant_attributes_payment_types_discover
-restaurant_attributes_payment_types_mastercard
-restaurant_attributes_payment_types_visa
-restaurant_attributes_price_range
-restaurant_attributes_smoking
-restaurant_attributes_take-out
-restaurant_attributes_takes_reservations
-restaurant_attributes_waiter_service
-restaurant_attributes_wheelchair_accessible
-restaurant_attributes_wi-fi
-restaurant_city
-restaurant_full_address
-restaurant_hours_friday_close
-restaurant_hours_friday_open
-restaurant_hours_monday_close
-restaurant_hours_monday_open
-restaurant_hours_saturday_close
-restaurant_hours_saturday_open
-restaurant_hours_sunday_close
-restaurant_hours_sunday_open
-restaurant_hours_thursday_close
-restaurant_hours_thursday_open
-restaurant_hours_tuesday_close
-restaurant_hours_tuesday_open
-restaurant_hours_wednesday_close
-restaurant_hours_wednesday_open
-restaurant_latitude
-restaurant_longitude
-restaurant_name
-restaurant_open
-restaurant_review_count
-restaurant_stars
-review_year
-review_month
-review_day
-review_dayofweek
-review_quarter
-review_dayofyear
-user_most_recent_elite_year
-restaurant_ambience
-restaurant_music
-restaurant_parking
-restaurant_street
-restaruant_zipcode
-checkin_counts
-restaurant_neighborhood_1
-restaurant_neighborhood_2
-restaurant_neighborhood_3
-restaurant_category_1
-restaurant_category_2
-restaurant_category_3
-restaurant_category_4
-restaurant_category_5
-restaurant_category_6
-restaurant_category_7
-inspection_id
-inspection_date
-score_lvl_1
-score_lvl_2
-score_lvl_3
-time_delta
-inspection_year
-inspection_month
-inspection_day
-inspection_dayofweek
-inspection_quarter
-inspection_dayofyear
+restaurant_id - category
+review_date - datetime64[ns]
+tip_likes - float64
+review_stars - float64
+review_text - object
+user_id - object
+review_votes_cool - float64
+review_votes_funny - float64
+review_votes_useful - float64
+user_average_stars - float64
+user_compliments_cool - float64
+user_compliments_cute - float64
+user_compliments_funny - float64
+user_compliments_hot - float64
+user_compliments_list - float64
+user_compliments_more - float64
+user_compliments_note - float64
+user_compliments_photos - float64
+user_compliments_plain - float64
+user_compliments_profile - float64
+user_compliments_writer - float64
+user_fans - int64
+user_name - object
+user_review_count - int64
+user_votes_cool - int64
+user_votes_funny - int64
+user_votes_useful - int64
+user_yelping_since - datetime64[ns]
+restaurant_attributes_accepts_credit_cards - bool
+restaurant_attributes_ages_allowed - object
+restaurant_attributes_alcohol - object
+restaurant_attributes_attire - object
+restaurant_attributes_byob - bool
+restaurant_attributes_byob/corkage - object
+restaurant_attributes_by_appointment_only - bool
+restaurant_attributes_caters - bool
+restaurant_attributes_coat_check - bool
+restaurant_attributes_corkage - bool
+restaurant_attributes_delivery - bool
+restaurant_attributes_dietary_restrictions_dairy-free - bool
+restaurant_attributes_dietary_restrictions_gluten-free - bool
+restaurant_attributes_dietary_restrictions_halal - bool
+restaurant_attributes_dietary_restrictions_kosher - bool
+restaurant_attributes_dietary_restrictions_soy-free - bool
+restaurant_attributes_dietary_restrictions_vegan - bool
+restaurant_attributes_dietary_restrictions_vegetarian - bool
+restaurant_attributes_dogs_allowed - bool
+restaurant_attributes_drive-thr - bool
+restaurant_attributes_good_for_dancing - bool
+restaurant_attributes_good_for_groups - bool
+restaurant_attributes_good_for_breakfast - bool
+restaurant_attributes_good_for_brunch - bool
+restaurant_attributes_good_for_dessert - bool
+restaurant_attributes_good_for_dinner - bool
+restaurant_attributes_good_for_latenight - bool
+restaurant_attributes_good_for_lunch - bool
+restaurant_attributes_good_for_kids - bool
+restaurant_attributes_happy_hour - bool
+restaurant_attributes_has_tv - bool
+restaurant_attributes_noise_level - object
+restaurant_attributes_open_24_hours - bool
+restaurant_attributes_order_at_counter - bool
+restaurant_attributes_outdoor_seating - bool
+restaurant_attributes_payment_types_amex - bool
+restaurant_attributes_payment_types_cash_only - bool
+restaurant_attributes_payment_types_discover - bool
+restaurant_attributes_payment_types_mastercard - bool
+restaurant_attributes_payment_types_visa - bool
+restaurant_attributes_price_range - float64
+restaurant_attributes_smoking - object
+restaurant_attributes_take-out - bool
+restaurant_attributes_takes_reservations - bool
+restaurant_attributes_waiter_service - bool
+restaurant_attributes_wheelchair_accessible - bool
+restaurant_attributes_wi-fi - object
+restaurant_city - object
+restaurant_full_address - object
+restaurant_hours_friday_close - object
+restaurant_hours_friday_open - object
+restaurant_hours_monday_close - object
+restaurant_hours_monday_open - object
+restaurant_hours_saturday_close - object
+restaurant_hours_saturday_open - object
+restaurant_hours_sunday_close - object
+restaurant_hours_sunday_open - object
+restaurant_hours_thursday_close - object
+restaurant_hours_thursday_open - object
+restaurant_hours_tuesday_close - object
+restaurant_hours_tuesday_open - object
+restaurant_hours_wednesday_close - object
+restaurant_hours_wednesday_open - object
+restaurant_latitude - float64
+restaurant_longitude - float64
+restaurant_name - object
+restaurant_open - bool
+restaurant_review_count - int64
+restaurant_stars - float64
+review_year - int64
+review_month - int64
+review_day - int64
+review_dayofweek - int64
+review_quarter - int64
+review_dayofyear - int64
+user_most_recent_elite_year - float64
+restaurant_ambience - object
+restaurant_music - object
+restaurant_parking - object
+restaurant_street - object
+restaruant_zipcode - object
+checkin_counts - float64
+restaurant_neighborhood_1 - object
+restaurant_neighborhood_2 - object
+restaurant_neighborhood_3 - object
+restaurant_category_1 - object
+restaurant_category_2 - object
+restaurant_category_3 - object
+restaurant_category_4 - object
+restaurant_category_5 - object
+restaurant_category_6 - object
+restaurant_category_7 - object
+inspection_id - int64
+inspection_date - datetime64[ns]
+score_lvl_1 - int64
+score_lvl_2 - int64
+score_lvl_3 - int64
+time_delta - float64
+inspection_year - int64
+inspection_month - int64
+inspection_day - int64
+inspection_dayofweek - int64
+inspection_quarter - int64
+inspection_dayofyear - int64

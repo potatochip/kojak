@@ -324,26 +324,26 @@ def transform_features(df):
 
     # expand neighborhoods out
     print('expand neighborhoods out')
-    temp_df = pd.DataFrame(df['restaurant_neighborhoods'].tolist(), columns=['restaurant_neighborhood_1', 'restaurant_neighborhood_2', 'restaurant_neighborhood_3'])
-    cats = temp_df.restaurant_neighborhood_1.astype('category').cat.categories.tolist() + temp_df.restaurant_neighborhood_2.astype('category').cat.categories.tolist() + temp_df.restaurant_neighborhood_3.astype('category').cat.categories.tolist()
-    temp_df['restaurant_neighborhood_1'] = temp_df['restaurant_neighborhood_1'].astype('category', categories=set(cats))
-    temp_df['restaurant_neighborhood_2'] = temp_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
-    temp_df['restaurant_neighborhood_3'] = temp_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
-    df = pd.concat([df, temp_df], axis=1)
+    neigh_df = pd.DataFrame(df['restaurant_neighborhoods'].tolist(), columns=['restaurant_neighborhood_1', 'restaurant_neighborhood_2', 'restaurant_neighborhood_3'])
+    cats = neigh_df.restaurant_neighborhood_1.astype('category').cat.categories.tolist() + neigh_df.restaurant_neighborhood_2.astype('category').cat.categories.tolist() + neigh_df.restaurant_neighborhood_3.astype('category').cat.categories.tolist()
+    neigh_df['restaurant_neighborhood_1'] = neigh_df['restaurant_neighborhood_1'].astype('category', categories=set(cats))
+    neigh_df['restaurant_neighborhood_2'] = neigh_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
+    neigh_df['restaurant_neighborhood_3'] = neigh_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
+    df = pd.concat([df, neigh_df], axis=1, join_axes=[df.index])
     df.drop('restaurant_neighborhoods', axis=1, inplace=True)
 
     # expand restaurant categories out
     print('expand restaurant categories out')
-    temp_df = pd.DataFrame(df['restaurant_categories'].tolist(), columns=['restaurant_category_1', 'restaurant_category_2', 'restaurant_category_3', 'restaurant_category_4', 'restaurant_category_5', 'restaurant_category_6', 'restaurant_category_7'])
-    cats = temp_df.restaurant_category_1.astype('category').cat.categories.tolist() + temp_df.restaurant_category_2.astype('category').cat.categories.tolist() + temp_df.restaurant_category_3.astype('category').cat.categories.tolist() + temp_df.restaurant_category_4.astype('category').cat.categories.tolist() + temp_df.restaurant_category_5.astype('category').cat.categories.tolist() + temp_df.restaurant_category_6.astype('category').cat.categories.tolist() + temp_df.restaurant_category_7.astype('category').cat.categories.tolist()
-    temp_df['restaurant_category_1'] = temp_df['restaurant_category_1'].astype('category', categories=set(cats))
-    temp_df['restaurant_category_2'] = temp_df['restaurant_category_2'].astype('category', categories=set(cats))
-    temp_df['restaurant_category_3'] = temp_df['restaurant_category_3'].astype('category', categories=set(cats))
-    temp_df['restaurant_category_4'] = temp_df['restaurant_category_4'].astype('category', categories=set(cats))
-    temp_df['restaurant_category_5'] = temp_df['restaurant_category_5'].astype('category', categories=set(cats))
-    temp_df['restaurant_category_6'] = temp_df['restaurant_category_6'].astype('category', categories=set(cats))
-    temp_df['restaurant_category_7'] = temp_df['restaurant_category_7'].astype('category', categories=set(cats))
-    df = pd.concat([df, temp_df], axis=1)
+    categ_df = pd.DataFrame(df['restaurant_categories'].tolist(), columns=['restaurant_category_1', 'restaurant_category_2', 'restaurant_category_3', 'restaurant_category_4', 'restaurant_category_5', 'restaurant_category_6', 'restaurant_category_7'])
+    cats = categ_df.restaurant_category_1.astype('category').cat.categories.tolist() + categ_df.restaurant_category_2.astype('category').cat.categories.tolist() + categ_df.restaurant_category_3.astype('category').cat.categories.tolist() + categ_df.restaurant_category_4.astype('category').cat.categories.tolist() + categ_df.restaurant_category_5.astype('category').cat.categories.tolist() + categ_df.restaurant_category_6.astype('category').cat.categories.tolist() + categ_df.restaurant_category_7.astype('category').cat.categories.tolist()
+    categ_df['restaurant_category_1'] = categ_df['restaurant_category_1'].astype('category', categories=set(cats))
+    categ_df['restaurant_category_2'] = categ_df['restaurant_category_2'].astype('category', categories=set(cats))
+    categ_df['restaurant_category_3'] = categ_df['restaurant_category_3'].astype('category', categories=set(cats))
+    categ_df['restaurant_category_4'] = categ_df['restaurant_category_4'].astype('category', categories=set(cats))
+    categ_df['restaurant_category_5'] = categ_df['restaurant_category_5'].astype('category', categories=set(cats))
+    categ_df['restaurant_category_6'] = categ_df['restaurant_category_6'].astype('category', categories=set(cats))
+    categ_df['restaurant_category_7'] = categ_df['restaurant_category_7'].astype('category', categories=set(cats))
+    df = pd.concat([df, categ_df], axis=1, join_axes=[df.index])
     df.drop('restaurant_categories', axis=1, inplace=True)
 
     return df
@@ -354,7 +354,7 @@ def make_feature_response(feature_df, response_df):
     response_df.inspection_date = pd.to_datetime(pd.Series(response_df.inspection_date))
 
     # combine features and response
-    features_response = pd.merge(feature_df, response_df, on='restaurant_id')
+    features_response = pd.merge(feature_df, response_df, on='restaurant_id', how='right')
 
     # remove reviews and tips that occur after an inspection - canceled because then end up removing restaurants that we are trying to predict for. future reviews still have predictive power and frames with no reviews but other information still have predictive power
     # no_future = features_response[features_response.review_date < features_response.inspection_date]
@@ -374,11 +374,9 @@ def make_train_test():
     training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
     submission = pd.read_csv("data/SubmissionFormat.csv", index_col=None)
     submission.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
-    print transformed_features.dtypes
     # combine features and response
     training_df = make_feature_response(transformed_features, training_response)
     test_df = make_feature_response(transformed_features, submission)
-    print training_df.dtypes
 
     # convert restaurant_id's into numbers representing the restaurant with same categories
     cats = training_df.restaurant_id.astype('category').cat.categories.tolist() + test_df.restaurant_id.astype('category').cat.categories.tolist()
@@ -413,8 +411,9 @@ def make_train_test():
     print('both dataframes pickled')
 
     # save column/feature names since they have grown out of hand
+    choices_choices = [str(j)+' - '+str(k) for j, k in zip(training_df.dtypes.index, training_df.dtypes)]
     with open('feature_names.txt', 'w') as f:
-        f.write('\n'.join(zip(training_df.dtypes.index, training_df.dtypes)))
+        f.write('\n'.join(choices_choices))
 
     # store = pd.HDFStore('models/df_store.h5')
     # store.append('training_df', transformed_training_df, data_columns=True, dropna=False)

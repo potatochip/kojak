@@ -92,11 +92,11 @@ def make_plots(X, y, description):
     coefficients(X, y['score_lvl_2'], 'score_lvl_2')
     coefficients(X, y['score_lvl_3'], 'score_lvl_3')
 
-    # feature correlation plot
-    correlations(data, X)
-
     # strip plots
     strip(X, transformed_y, 'transformed_y')
     strip(X, y['score_lvl_1'], 'score_lvl_1')
     strip(X, y['score_lvl_2'], 'score_lvl_2')
     strip(X, y['score_lvl_3'], 'score_lvl_3')
+
+    # feature correlation plot
+    correlations(data, X)
