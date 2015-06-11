@@ -4,15 +4,17 @@ import logging
 import transformations
 import text_processors
 import test_model
+from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
 
+
 estimator = LinearRegression()
-pipeline = [('clf', estimator), ]
+pipeline = Pipeline([('clf', estimator), ])
 feature_list = ['time_delta', 'review_text']
 transformation_list = [('text_length', transformations.text_to_length)]
-vectorized_docs = text_processors.load_count_docs()
-
-filename = 'ols.csv'
+# vectorized_docs = text_processors.load_count_docs('test')
+vectorized_docs = None
+filename = 'test.csv'
 
 
 LOG_FILENAME = 'fit_submit.log'
@@ -26,15 +28,24 @@ def logPrint(message):
 
 
 def fit_and_submit(train_df, test_df, pipeline, filename):
-    if vectorized_docs:
+    if vectorized_docs and feature_list:
+        X_train = hstack([vectorized_docs[1], coo_matrix(X_train)])
+        logPrint('Matrices combined')
+    elif vectorized_docs and not feature_list:
+        X_train = vectorized_docs[1]
+    elif not vectorized_docs and feature_list:
         pass
+    elif not vectorized_docs and not feature_list:
+        print('whoops!')
 
-    X_test, y_test, tranformed_y_test = test_model.extract_features(test_df)
-    X_train, y_train, transformed_y_train = test_model.extract_features(train_df)
+    X_test, y_test = test_model.extract_features(test_df)
+    X_train, y_train = test_model.extract_features(train_df)
 
     # predict the counts for the test set
-    model = pipeline.fit(X_train, y_train)
-    predictions = model.predict(X_test)
+    s1 = pipeline.fit(X_train[feature_list], y_train['score_lvl_1']).predict(X_test[feature_list])
+    s2 = pipeline.fit(X_train[feature_list], y_train['score_lvl_2']).predict(X_test[feature_list])
+    s3 = pipeline.fit(X_train[feature_list], y_train['score_lvl_3']).predict(X_test[feature_list])
+    predictions = np.dstack((s1, s2, s3))[0]
 
     # clip the predictions so they are all greater than or equal to zero
     # since we can't have negative counts of violations
@@ -51,12 +62,13 @@ def fit_and_submit(train_df, test_df, pipeline, filename):
     indexed_prediction = temp.reindex(new_submission.index)
     if new_submission.shape != indexed_prediction.shape:
         logPrint("ERROR: Submission and prediction have different shapes")
-    new_submission.iloc[:, -3:] = np.round(indexed_prediction[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']]).astype(int)
+    new_submission[['*', '**', '***']] = np.round(indexed_prediction[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']]).astype(np.int8)
     new_submission.to_csv('predictions/'+filename)
 
 
 def main():
     train_df, test_df = data_grab.load_dataframes(feature_list)
+    logPrint("Dataframes loaded")
 
     # transformations
     trans_list = []

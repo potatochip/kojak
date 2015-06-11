@@ -301,3 +301,161 @@ INFO:__main__:102 seconds elapsed from start after entire run.
 2015-06-10 13:27:32,246 : INFO : entire run finished
 2015-06-10 16:03:36,488 : INFO : Shape before transformation of (4071065, 7) and after transformation of (4071065, 7)
 2015-06-10 16:06:55,740 : INFO : Shape before transformation of (1044138, 7) and after transformation of (1044138, 7)
+2015-06-10 16:40:15,992 : INFO : dataframes retrieved
+2015-06-10 16:40:19,186 : INFO : Shape before transformation of (4071065, 7) and after transformation of (4071065, 7)
+2015-06-10 16:40:19,186 : INFO : feature extraction finished
+2015-06-10 16:41:06,573 : INFO : dataframes retrieved
+2015-06-10 16:41:09,048 : INFO : Shape before transformation of (4071065, 7) and after transformation of (4071065, 7)
+2015-06-10 16:41:09,048 : INFO : feature extraction finished
+2015-06-10 16:41:09,494 : INFO : Scoring Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 16:41:09,494 : INFO : time_delta/text_length model scored
+2015-06-10 16:49:47,464 : INFO : dataframes retrieved
+2015-06-10 16:49:51,650 : INFO : Shape before transformation of (4071065, 7) and after transformation of (4071065, 7)
+2015-06-10 16:49:51,650 : INFO : feature extraction finished
+2015-06-10 16:49:52,174 : INFO : Scoring time_delta/text_length model on Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 16:50:06,510 : INFO : CV score of -0.0150397768452 +/- 0.0091813919363
+2015-06-10 16:50:13,731 : INFO : Contest score of 1.22786789307
+2015-06-10 16:50:13,797 : INFO : Scoring review_text/text_length model on Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 16:50:27,023 : INFO : CV score of -0.0145116059949 +/- 0.00890395622491
+2015-06-10 16:50:32,442 : INFO : Contest score of 1.22848088478
+2015-06-10 16:50:32,546 : INFO : Scoring time_delta+review_text/text_length model on Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 16:50:45,644 : INFO : CV score of -0.0150676353006 +/- 0.0092103990263
+2015-06-10 16:50:51,527 : INFO : Contest score of 1.22786756554
+2015-06-10 16:51:47,411 : INFO : plots made
+2015-06-10 16:51:47,411 : INFO : entire run finished
+2015-06-10 16:57:40,279 : INFO : dataframes retrieved
+2015-06-10 16:57:40,282 : INFO : feature extraction finished
+2015-06-10 16:58:21,148 : INFO : Scoring time_delta/review_bag_of_words model on Pipeline(steps=[('est', MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True))])
+2015-06-10 17:03:09,339 : INFO : dataframes retrieved
+2015-06-10 17:03:09,341 : INFO : feature extraction finished
+2015-06-10 17:03:56,309 : INFO : Scoring time_delta/review_bag_of_words model on Pipeline(steps=[('est', MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True))])
+2015-06-10 17:14:11,823 : INFO : dataframes retrieved
+2015-06-10 17:14:11,825 : INFO : feature extraction finished
+2015-06-10 17:14:43,094 : INFO : Scoring time_delta/review_bag_of_words model on
+	 Pipeline(steps=[('est', MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True))])
+2015-06-10 17:36:56,656 : INFO : dataframes retrieved
+2015-06-10 17:36:56,659 : INFO : feature extraction finished
+2015-06-10 17:37:29,780 : INFO : Scoring time_delta/review_bag_of_words model on
+	 Pipeline(steps=[('est', MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True))])
+2015-06-10 18:11:56,518 : INFO : dataframes retrieved
+2015-06-10 18:12:02,640 : INFO : Shape before transformation of (4071065, 7) and after transformation of (4071065, 7)
+2015-06-10 18:12:02,640 : INFO : feature extraction finished
+2015-06-10 18:12:03,568 : INFO : Scoring time_delta/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 18:12:20,631 : INFO : CV score of -0.016382673915 +/- 0.0100637756133
+2015-06-10 21:04:07,749 : INFO : dataframes retrieved
+2015-06-10 21:04:10,431 : INFO : Shape before transformation of (4071065, 7) and after transformation of (4071065, 7)
+2015-06-10 21:04:10,431 : INFO : feature extraction finished
+2015-06-10 21:04:10,890 : INFO : Scoring time_delta/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 21:04:23,135 : INFO : CV score of -0.016382673915 +/- 0.0100637756133
+2015-06-10 21:06:41,705 : INFO : dataframes retrieved
+2015-06-10 21:06:45,269 : INFO : Shape before transformation of (4071065, 7) and after transformation of (4071065, 7)
+2015-06-10 21:06:45,269 : INFO : feature extraction finished
+2015-06-10 21:06:45,814 : INFO : Scoring time_delta/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 21:07:00,715 : INFO : CV score of -0.016382673915 +/- 0.0100637756133
+2015-06-10 21:14:32,282 : INFO : dataframes retrieved
+2015-06-10 21:14:35,082 : INFO : Shape before transformation of (4071065, 6) and after transformation of (4071065, 6)
+2015-06-10 21:14:35,082 : INFO : feature extraction finished
+2015-06-10 22:09:18,863 : INFO : dataframes retrieved
+2015-06-10 22:09:22,185 : INFO : Shape before transformation of (4071065, 6) and after transformation of (4071065, 6)
+2015-06-10 22:09:22,185 : INFO : feature extraction finished
+2015-06-10 22:09:22,710 : INFO : Scoring time_delta/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 22:09:37,077 : INFO : CV score of -0.016382673915 +/- 0.0100637756133
+2015-06-10 22:09:51,228 : INFO : CV score of -0.0157190493986 +/- 0.00962419991701
+2015-06-10 22:10:04,626 : INFO : CV score of -0.00383183400507 +/- 0.00241208075159
+2015-06-10 22:10:11,578 : INFO : Contest score of 1.19985611095
+2015-06-10 22:10:11,641 : INFO : Scoring review_text/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 22:10:25,465 : INFO : CV score of -0.0157622013717 +/- 0.0097774500305
+2015-06-10 22:10:39,591 : INFO : CV score of -0.0159143822463 +/- 0.00897451094929
+2015-06-10 22:10:52,762 : INFO : CV score of -0.00395823935897 +/- 0.00228819143165
+2015-06-10 22:10:59,192 : INFO : Contest score of 1.19995312343
+2015-06-10 22:10:59,275 : INFO : Scoring time_delta+review_text/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 22:11:12,670 : INFO : CV score of -0.0164120408006 +/- 0.0100972940474
+2015-06-10 22:11:26,850 : INFO : CV score of -0.0157200786334 +/- 0.00961802082033
+2015-06-10 22:11:41,648 : INFO : CV score of -0.00385663108705 +/- 0.00243839175434
+2015-06-10 22:11:49,448 : INFO : Contest score of 1.20002220582
+2015-06-10 22:16:26,042 : INFO : dataframes retrieved
+2015-06-10 22:16:28,696 : INFO : Shape before transformation of (4071065, 6) and after transformation of (4071065, 6)
+2015-06-10 22:16:28,696 : INFO : feature extraction finished
+2015-06-10 22:16:29,135 : INFO : Scoring time_delta/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 22:16:41,671 : INFO : CV score of -0.016382673915 +/- 0.0100637756133
+2015-06-10 22:16:54,729 : INFO : CV score of -0.0157190493986 +/- 0.00962419991701
+2015-06-10 22:17:07,349 : INFO : CV score of -0.00383183400507 +/- 0.00241208075159
+2015-06-10 22:17:13,851 : INFO : Contest score of 1.19985611095
+2015-06-10 22:17:13,901 : INFO : Scoring review_text/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 22:17:26,823 : INFO : CV score of -0.0157622013717 +/- 0.0097774500305
+2015-06-10 22:17:39,399 : INFO : CV score of -0.0159143822463 +/- 0.00897451094929
+2015-06-10 22:17:51,623 : INFO : CV score of -0.00395823935897 +/- 0.00228819143165
+2015-06-10 22:17:58,077 : INFO : Contest score of 1.19995312343
+2015-06-10 22:17:58,166 : INFO : Scoring time_delta+review_text/text_length model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-10 22:18:11,689 : INFO : CV score of -0.0164120408006 +/- 0.0100972940474
+2015-06-10 22:18:25,545 : INFO : CV score of -0.0157200786334 +/- 0.00961802082033
+2015-06-10 22:18:38,573 : INFO : CV score of -0.00385663108705 +/- 0.00243839175434
+2015-06-10 22:18:45,128 : INFO : Contest score of 1.20002220582
+2015-06-10 22:29:54,748 : INFO : Shape before transformation of (4071065, 9) and after transformation of (4071065, 9)
+2015-06-10 22:32:44,551 : INFO : Shape before transformation of (4071065, 9) and after transformation of (4071065, 9)
+2015-06-10 22:34:23,103 : INFO : Shape before transformation of (4071065, 5) and after transformation of (4071065, 5)
+2015-06-10 22:34:24,092 : INFO : Shape before transformation of (1044138, 8) and after transformation of (1044138, 8)
+2015-06-10 22:34:24,093 : INFO : feature extraction finished
+2015-06-10 22:37:59,499 : INFO : Shape before transformation of (4071065, 5) and after transformation of (4071065, 5)
+2015-06-10 22:38:00,240 : INFO : Shape before transformation of (1044138, 8) and after transformation of (1044138, 8)
+2015-06-10 22:38:00,240 : INFO : feature extraction finished
+2015-06-10 22:38:53,809 : INFO : Dataframes loaded
+2015-06-10 22:38:56,725 : INFO : Shape before transformation of (4071065, 5) and after transformation of (4071065, 5)
+2015-06-10 22:38:57,508 : INFO : Shape before transformation of (1044138, 8) and after transformation of (1044138, 8)
+2015-06-10 22:38:57,508 : INFO : feature extraction finished
+2015-06-10 22:52:13,565 : INFO : Dataframes loaded
+2015-06-10 22:52:16,435 : INFO : Shape before transformation of (4071065, 5) and after transformation of (4071065, 5)
+2015-06-10 22:52:17,064 : INFO : Shape before transformation of (1044138, 8) and after transformation of (1044138, 8)
+2015-06-10 22:52:17,065 : INFO : feature extraction finished
+2015-06-10 23:02:15,387 : INFO : dataframes retrieved
+2015-06-10 23:02:15,390 : INFO : feature extraction finished
+2015-06-10 23:03:03,415 : INFO : Scoring time_delta/review_bag_of_words model on
+	 Pipeline(steps=[('est', MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True))])
+2015-06-10 23:09:29,334 : INFO : dataframes retrieved
+2015-06-10 23:09:29,973 : INFO : feature extraction finished
+2015-06-10 23:13:46,827 : INFO : Matrices combined
+2015-06-10 23:13:46,939 : INFO : Scoring time_delta/review_bag_of_words model on
+	 Pipeline(steps=[('est', MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True))])
+2015-06-11 08:21:22,180 : INFO : dataframes retrieved
+2015-06-11 08:21:22,335 : INFO : feature extraction finished
+2015-06-11 08:29:56,484 : INFO : dataframes retrieved
+2015-06-11 08:29:56,636 : INFO : feature extraction finished
+2015-06-11 08:29:56,655 : INFO : Scoring single_feature_review_bag_of_words model on
+	 Pipeline(steps=[('est', SGDClassifier(alpha=0.0001, average=False, class_weight=None, epsilon=0.1,
+       eta0=0.0, fit_intercept=True, l1_ratio=0.15,
+       learning_rate='optimal', loss='hinge', n_iter=5, n_jobs=1,
+       penalty='l2', power_t=0.5, random_state=None, shuffle=True,
+       verbose=0, warm_start=False))])
+2015-06-11 09:47:24,442 : INFO : CV score of 0.104862298595 +/- 0.00754679604796
+2015-06-11 09:52:40,600 : INFO : CV score of 0.695592673273 +/- 0.00940183025991
+2015-06-11 10:04:11,273 : INFO : CV score of 0.554439927487 +/- 0.0081834109485
+2015-06-11 10:19:20,804 : INFO : Contest score of 1.55459656184
+2015-06-11 10:19:23,881 : INFO : Finished in 6595.46993685 seconds.
+2015-06-11 10:41:19,377 : INFO : dataframes retrieved
+2015-06-11 10:41:19,482 : INFO : feature extraction finished
+2015-06-11 10:41:19,486 : INFO : Scoring single_feature_review_tfidf model on
+	 Pipeline(steps=[('est', SGDClassifier(alpha=0.0001, average=False, class_weight=None, epsilon=0.1,
+       eta0=0.0, fit_intercept=True, l1_ratio=0.15,
+       learning_rate='optimal', loss='hinge', n_iter=5, n_jobs=1,
+       penalty='l2', power_t=0.5, random_state=None, shuffle=True,
+       verbose=0, warm_start=False))])
+2015-06-11 11:06:44,123 : INFO : CV score of 0.097126427165 +/- 0.0123950451682
+2015-06-11 11:14:35,744 : INFO : CV score of 0.702490380282 +/- 6.86283051072e-07
+2015-06-11 11:30:14,965 : INFO : CV score of 0.56637612022 +/- 1.45857199274e-05
+2015-06-11 11:47:41,603 : INFO : Contest score of 1.47605721362
+2015-06-11 11:47:45,805 : INFO : Finished in 4019.57291293 seconds.
+2015-06-11 11:53:25,785 : INFO : dataframes retrieved
+2015-06-11 11:53:26,003 : INFO : feature extraction finished
+2015-06-11 11:53:26,020 : INFO : Scoring single_feature_review_tfidf model on
+	 Pipeline(steps=[('est', SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3, gamma=0.0,
+  kernel='rbf', max_iter=-1, probability=False, random_state=None,
+  shrinking=True, tol=0.001, verbose=False))])

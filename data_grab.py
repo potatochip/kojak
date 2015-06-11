@@ -109,9 +109,10 @@ def get_full_features():
     # some nan's will exist where reviews columns and tips columns don't match up
     reviews_tips = reviews.append(tips)
     reviews_tips.columns = ['restaurant_id', 'review_date', 'tip_likes', 'review_id', 'review_stars', 'review_text', 'review_type', 'user_id', 'review_votes_cool', 'review_votes_funny', 'review_votes_useful']
-    # saving this for tfidf vectorizer training later
-    with open('models/reviews_tips_original_text.pkl', 'w') as f:
-        pickle.dump(reviews_tips.review_text.tolist(), f)
+
+    # # saving this for tfidf vectorizer training later
+    # with open('models/reviews_tips_original_text.pkl', 'w') as f:
+    #     pickle.dump(reviews_tips.review_text.tolist(), f)
 
     users = get_users()
     users_reviews_tips = pd.merge(reviews_tips, users, how='left', on='user_id')
@@ -152,37 +153,24 @@ def transform_features(df):
     no mixed objects, no unicode (in python2)
     '''
 
-    # create number representing days passed between inspection date and review date
-    df['time_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
-
-    # weigh scores according to competition weights and sum
-    scores = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)
-    df['transformed_score'] = scores.multiply([1, 3, 5], axis=1).sum(axis=1)
-
     # remove columns that have values without variance or are unnecessary
     df.drop('restaurant_type', axis=1, inplace=True)
     df.drop('review_type', axis=1, inplace=True)
     df.drop('review_id', axis=1, inplace=True)
-    df.drop('user_name', axis=1, inplace=True)
+    # df.drop('user_name', axis=1, inplace=True)
     df.drop('user_type', axis=1, inplace=True)
     df.drop('restaurant_state', axis=1, inplace=True)
     df.drop('checkin_type', axis=1, inplace=True)
     df.drop('user_friends', axis=1, inplace=True)
 
-
     # expand review_date and inspection_date into parts of year. could probably just get by with month or dayofyear
-    df['review_year'] = df['inspection_date'].dt.year
+    df.review_date = pd.to_datetime(pd.Series(df.review_date))
+    df['review_year'] = df['review_date'].dt.year
     df['review_month'] = df['review_date'].dt.month
     df['review_day'] = df['review_date'].dt.day
     df['review_dayofweek'] = df['review_date'].dt.dayofweek
     df['review_quarter'] = df['review_date'].dt.quarter
     df['review_dayofyear'] = df['review_date'].dt.dayofyear
-    df['inspection_year'] = df['inspection_date'].dt.year
-    df['inspection_month'] = df['inspection_date'].dt.month
-    df['inspection_day'] = df['inspection_date'].dt.day
-    df['inspection_dayofweek'] = df['inspection_date'].dt.dayofweek
-    df['inspection_quarter'] = df['inspection_date'].dt.quarter
-    df['inspection_dayofyear'] = df['inspection_date'].dt.dayofyear
 
     # convert user_elite to the most recent year
     df['user_most_recent_elite_year'] = df['user_elite'].apply(lambda x: x[-1] if x else np.nan)
@@ -232,32 +220,6 @@ def transform_features(df):
     df['restaurant_attributes_takes_reservations'] = df['restaurant_attributes_takes_reservations'].astype('bool')
     df['restaurant_attributes_waiter_service'] = df['restaurant_attributes_waiter_service'].astype('bool')
     df['restaurant_attributes_wheelchair_accessible'] = df['restaurant_attributes_wheelchair_accessible'].astype('bool')
-
-    # make categorical type
-    print('make categorical type')
-    df['restaurant_attributes_ages_allowed'] = df['restaurant_attributes_ages_allowed'].astype('category')
-    df['restaurant_attributes_alcohol'] = df['restaurant_attributes_alcohol'].astype('category')
-    df['restaurant_attributes_attire'] = df['restaurant_attributes_attire'].astype('category')
-    df['restaurant_attributes_byob/corkage'] = df['restaurant_attributes_byob/corkage'].astype('category')
-    df['restaurant_attributes_noise_level'] = df['restaurant_attributes_noise_level'].astype('category')
-    df['restaurant_attributes_smoking'] = df['restaurant_attributes_smoking'].astype('category')
-    df['restaurant_attributes_wi-fi'] = df['restaurant_attributes_wi-fi'].astype('category')
-    df['restaurant_city'] = df['restaurant_city'].astype('category')
-    df['restaurant_hours_friday_close'] = df['restaurant_hours_friday_close'].astype('category')
-    df['restaurant_hours_friday_open'] = df['restaurant_hours_friday_open'].astype('category')
-    df['restaurant_hours_monday_close'] = df['restaurant_hours_monday_close'].astype('category')
-    df['restaurant_hours_monday_open'] = df['restaurant_hours_monday_open'].astype('category')
-    df['restaurant_hours_saturday_close'] = df['restaurant_hours_saturday_close'].astype('category')
-    df['restaurant_hours_saturday_open'] = df['restaurant_hours_saturday_open'].astype('category')
-    df['restaurant_hours_sunday_close'] = df['restaurant_hours_sunday_close'].astype('category')
-    df['restaurant_hours_sunday_open'] = df['restaurant_hours_sunday_open'].astype('category')
-    df['restaurant_hours_thursday_close'] = df['restaurant_hours_thursday_close'].astype('category')
-    df['restaurant_hours_thursday_open'] = df['restaurant_hours_thursday_open'].astype('category')
-    df['restaurant_hours_tuesday_close'] = df['restaurant_hours_tuesday_close'].astype('category')
-    df['restaurant_hours_tuesday_open'] = df['restaurant_hours_tuesday_open'].astype('category')
-    df['restaurant_hours_wednesday_close'] = df['restaurant_hours_wednesday_close'].astype('category')
-    df['restaurant_hours_wednesday_open'] = df['restaurant_hours_wednesday_open'].astype('category')
-    df['restaurant_name'] = df['restaurant_name'].astype('category')
 
     # flatten ambience into one column
     print('flatten ambience into one column')
@@ -320,7 +282,47 @@ def transform_features(df):
     df['restaruant_zipcode'] = df['restaurant_full_address'].apply(lambda x: re.search('\d+$', x).group() if re.search('\d+$', x) is not None else np.nan).astype('category')
     # df.drop('restaurant_full_address', axis=1, inplace=True)
 
-    # # expand neighborhoods out
+    # sum the checkin values
+    print('sum the check in values')
+    df['checkin_counts'] = df['checkin_info'].apply(lambda x: np.nan if pd.isnull(x) else sum(x.values()))
+    df.drop('checkin_info', axis=1, inplace=True)
+
+    # force text to non-unicode
+    print('force text to non-unicode')
+    df['review_text'] = df['review_text'].apply(lambda x: unicodedata.normalize('NFKD', x) if type(x) != str else x)
+
+    # make categorical type
+    print('make categorical type')
+    df['restaurant_attributes_ages_allowed'] = df['restaurant_attributes_ages_allowed'].astype('category')
+    df['restaurant_attributes_alcohol'] = df['restaurant_attributes_alcohol'].astype('category')
+    df['restaurant_attributes_attire'] = df['restaurant_attributes_attire'].astype('category')
+    df['restaurant_attributes_byob/corkage'] = df['restaurant_attributes_byob/corkage'].astype('category')
+    df['restaurant_attributes_noise_level'] = df['restaurant_attributes_noise_level'].astype('category')
+    df['restaurant_attributes_smoking'] = df['restaurant_attributes_smoking'].astype('category')
+    df['restaurant_attributes_wi-fi'] = df['restaurant_attributes_wi-fi'].astype('category')
+    df['restaurant_city'] = df['restaurant_city'].astype('category')
+    df['restaurant_hours_friday_close'] = df['restaurant_hours_friday_close'].astype('category')
+    df['restaurant_hours_friday_open'] = df['restaurant_hours_friday_open'].astype('category')
+    df['restaurant_hours_monday_close'] = df['restaurant_hours_monday_close'].astype('category')
+    df['restaurant_hours_monday_open'] = df['restaurant_hours_monday_open'].astype('category')
+    df['restaurant_hours_saturday_close'] = df['restaurant_hours_saturday_close'].astype('category')
+    df['restaurant_hours_saturday_open'] = df['restaurant_hours_saturday_open'].astype('category')
+    df['restaurant_hours_sunday_close'] = df['restaurant_hours_sunday_close'].astype('category')
+    df['restaurant_hours_sunday_open'] = df['restaurant_hours_sunday_open'].astype('category')
+    df['restaurant_hours_thursday_close'] = df['restaurant_hours_thursday_close'].astype('category')
+    df['restaurant_hours_thursday_open'] = df['restaurant_hours_thursday_open'].astype('category')
+    df['restaurant_hours_tuesday_close'] = df['restaurant_hours_tuesday_close'].astype('category')
+    df['restaurant_hours_tuesday_open'] = df['restaurant_hours_tuesday_open'].astype('category')
+    df['restaurant_hours_wednesday_close'] = df['restaurant_hours_wednesday_close'].astype('category')
+    df['restaurant_hours_wednesday_open'] = df['restaurant_hours_wednesday_open'].astype('category')
+    df['restaurant_name'] = df['restaurant_name'].astype('category')
+    df['user_id'] = df['user_id'].astype('category')
+    df['user_name'] = df['user_name'].astype('category')
+
+    # make review_text categorical to make it easier to work with
+    df['review_text'] = df['review_text'].astype('category')
+
+    # expand neighborhoods out
     print('expand neighborhoods out')
     temp_df = pd.DataFrame(df['restaurant_neighborhoods'].tolist(), columns=['restaurant_neighborhood_1', 'restaurant_neighborhood_2', 'restaurant_neighborhood_3'])
     cats = temp_df.restaurant_neighborhood_1.astype('category').cat.categories.tolist() + temp_df.restaurant_neighborhood_2.astype('category').cat.categories.tolist() + temp_df.restaurant_neighborhood_3.astype('category').cat.categories.tolist()
@@ -328,13 +330,7 @@ def transform_features(df):
     temp_df['restaurant_neighborhood_2'] = temp_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
     temp_df['restaurant_neighborhood_3'] = temp_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
     df = df.join(temp_df)
-    # df['restaurant_neighborhood'] = df['restaurant_neighborhoods'].apply(lambda x: x[0] if x else np.nan)
     df.drop('restaurant_neighborhoods', axis=1, inplace=True)
-
-    # sum the checkin values
-    print('sum the check in values')
-    df['checkin_counts'] = df['checkin_info'].apply(lambda x: np.nan if pd.isnull(x) else sum(x.values()))
-    df.drop('checkin_info', axis=1, inplace=True)
 
     # expand restaurant categories out
     print('expand restaurant categories out')
@@ -350,17 +346,13 @@ def transform_features(df):
     df = df.join(temp_df)
     df.drop('restaurant_categories', axis=1, inplace=True)
 
-    # force text to non-unicode
-    print('force text to non-unicode')
-    df['review_text'] = df['review_text'].apply(lambda x: unicodedata.normalize('NFKD', x) if type(x) != str else x)
-
     return df
 
 
 def make_feature_response(feature_df, response_df):
     # convert dates to datetime object
     response_df.inspection_date = pd.to_datetime(pd.Series(response_df.inspection_date))
-    feature_df.review_date = pd.to_datetime(pd.Series(feature_df.review_date))
+
     # combine features and response
     features_response = pd.merge(feature_df, response_df, on='restaurant_id')
 
@@ -370,58 +362,59 @@ def make_feature_response(feature_df, response_df):
     return features_response
 
 
-def convert_categories(df, caller):
-    # # convert restaurant_categories into separate columns
-    print('convert restaurant_categories into separate columns')
-    category_list = []
-    for categories in df['restaurant_categories']:
-        category_list.append({'restaurant_category_'+i.lower().replace(' ', '_'): True for i in categories})
-    # category_df = df['restaurant_id'].append(pd.DataFrame(category_list, dtype='bool'))
-    category_df = pd.DataFrame(category_list, dtype='bool')
-    # category_df.to_hdf('models/df_store.h5', 'restaurant_categories')
-    # category_df.to_pickle('models/restaurant_categories_df.pkl')
-    if caller == 'train':
-        dear_mongo(category_df, 'train_categories')
-    elif caller == 'test':
-        dear_mongo(category_df, 'test_categories')
-
-
 def make_train_test():
     full_features = get_full_features()
+
+    # transform features
+    print('transforming features')
+    transformed_features = transform_features(full_features)
+    print('finished transformations')
+
     training_response = pd.read_csv("data/train_labels.csv", index_col=None)
     training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
     submission = pd.read_csv("data/SubmissionFormat.csv", index_col=None)
     submission.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
+    print transformed_features.dtypes
     # combine features and response
-    training_df = make_feature_response(full_features, training_response)
-    test_df = make_feature_response(full_features, submission)
+    training_df = make_feature_response(transformed_features, training_response)
+    test_df = make_feature_response(transformed_features, submission)
+    print training_df.dtypes
 
-    # transform dataframes
-    print('transforming training set')
-    transformed_training_df = transform_features(training_df)
-    print('transforming test set')
-    transformed_test_df = transform_features(test_df)
+    # convert restaurant_id's into numbers representing the restaurant with same categories
+    cats = training_df.restaurant_id.astype('category').cat.categories.tolist() + test_df.restaurant_id.astype('category').cat.categories.tolist()
+    training_df['restaurant_id'] = training_df['restaurant_id'].astype('category', categories=set(cats))
+    test_df['restaurant_id'] = test_df['restaurant_id'].astype('category', categories=set(cats))
+    # restaurant_categories = pd.Categorical.from_array(train_df.restaurant_id)
+    # train_df['restaurant_id_number'] = restaurant_categories.codes
+    # test_df['restaurant_id_number'] = restaurant_categories.categories.get_indexer(test_df.restaurant_id)
 
-    # convert restaurant_id's into numbers representing the restaurant then applying the same
-    # categories to the submission dataframe
-    restaurant_categories = pd.Categorical.from_array(transformed_training_df.restaurant_id)
-    transformed_training_df['restaurant_id_number'] = restaurant_categories.codes
-    transformed_test_df['restaurant_id_number'] = restaurant_categories.categories.get_indexer(transformed_test_df.restaurant_id)
-    print('finished transformations')
+    # create number representing days passed between inspection date and review date
+    training_df['time_delta'] = (training_df.inspection_date - training_df.review_date).astype('timedelta64[D]')
+    test_df['time_delta'] = (test_df.inspection_date - test_df.review_date).astype('timedelta64[D]')
+
+    # transform inspection date
+    training_df['inspection_year'] = training_df['inspection_date'].dt.year
+    training_df['inspection_month'] = training_df['inspection_date'].dt.month
+    training_df['inspection_day'] = training_df['inspection_date'].dt.day
+    training_df['inspection_dayofweek'] = training_df['inspection_date'].dt.dayofweek
+    training_df['inspection_quarter'] = training_df['inspection_date'].dt.quarter
+    training_df['inspection_dayofyear'] = training_df['inspection_date'].dt.dayofyear
+
+    test_df['inspection_year'] = test_df['inspection_date'].dt.year
+    test_df['inspection_month'] = test_df['inspection_date'].dt.month
+    test_df['inspection_day'] = test_df['inspection_date'].dt.day
+    test_df['inspection_dayofweek'] = test_df['inspection_date'].dt.dayofweek
+    test_df['inspection_quarter'] = test_df['inspection_date'].dt.quarter
+    test_df['inspection_dayofyear'] = test_df['inspection_date'].dt.dayofyear
 
     # # save dataframes
-    transformed_training_df.to_pickle('models/training_df.pkl')
-    transformed_test_df.to_pickle('models/test_df.pkl')
+    training_df.to_pickle('models/training_df.pkl')
+    test_df.to_pickle('models/test_df.pkl')
     print('both dataframes pickled')
 
     # save column/feature names since they have grown out of hand
     with open('feature_names.txt', 'w') as f:
-        f.write('\n'.join(transformed_training_df.columns.tolist()))
-
-    # convert_categories(transformed_training_df, 'train')
-    # transformed_training_df.drop('restaurant_categories', axis=1, inplace=True)
-    # convert_categories(transformed_test_df, 'test')
-    # transformed_test_df.drop('restaurant_categories', axis=1, inplace=True)
+        f.write('\n'.join(training_df.columns.tolist()))
 
     # store = pd.HDFStore('models/df_store.h5')
     # store.append('training_df', transformed_training_df, data_columns=True, dropna=False)
@@ -431,44 +424,49 @@ def make_train_test():
     # dear_mongo(transformed_training_df, 'train')
     # dear_mongo(transformed_test_df, 'test')
 
-    return transformed_training_df, transformed_test_df
+
+# def dear_mongo(df, collection):
+#     print('working on {}'.format(collection))
+#     pbar = ProgressBar(maxval=df.shape[0]).start()
+#     for index, row in enumerate(df.iterrows()):
+#         record = json.loads(row[1].to_json())
+#         db[collection].save(record)
+#         pbar.update(index)
+#     pbar.finish()
 
 
-def dear_mongo(df, collection):
-    print('working on {}'.format(collection))
-    pbar = ProgressBar(maxval=df.shape[0]).start()
-    for index, row in enumerate(df.iterrows()):
-        record = json.loads(row[1].to_json())
-        db[collection].save(record)
-        pbar.update(index)
-    pbar.finish()
+# def fetch_mongo(collection, features):
+#     print("Getting documents")
+#     features.extend(['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
+#     selection = {i: 1 for i in features}.update({"_id": 0})
+#     cursor = db[collection].find({}, selection, no_cursor_timeout=True, cursor_type=CursorType.EXHAUST)
+#     pbar = ProgressBar(maxval=cursor.count()).start()
+#     df = pd.DataFrame()
+#     for index, row in enumerate(cursor):
+#         df = df.append(row, ignore_index=True)
+#         pbar.update(index)
+#     pbar.finish()
+#     cursor.close()
+#     return df
 
 
-def fetch_mongo(collection, features):
-    print("Getting documents")
-    features.extend(['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
-    selection = {i: 1 for i in features}.update({"_id": 0})
-    cursor = db[collection].find({}, selection, no_cursor_timeout=True, cursor_type=CursorType.EXHAUST)
-    pbar = ProgressBar(maxval=cursor.count()).start()
-    df = pd.DataFrame()
-    for index, row in enumerate(cursor):
-        df = df.append(row, ignore_index=True)
-        pbar.update(index)
-    pbar.finish()
-    cursor.close()
-    return df
-
-
-def get_selects(frame, features):
-    features = features[:]
-    features.extend(['inspection_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
+def get_selects(frame, features=None):
     if frame == 'train':
         df = pd.read_pickle('models/training_df.pkl')
-        df = df[features]
+        if features:
+            features = features[:]
+            features.extend(['score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
+            return df[features]
+        else:
+            return df
     elif frame == 'test':
         df = pd.read_pickle('models/test_df.pkl')
-        df = df[features]
-    return df
+        if features:
+            features = features[:]
+            features.extend(['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
+            return df[features]
+        else:
+            return df
 
 
 def test():
@@ -478,7 +476,7 @@ def test():
     store.close()
 
 
-def load_dataframes(features):
+def load_dataframes(features=None):
     train_df = get_selects('train', features)
     test_df = get_selects('test', features)
     return train_df, test_df

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import csv
+import scipy
 import logging
 # import pymongo
+import socket
 import metrics
 import data_grab
 import sendMessage
@@ -12,8 +14,6 @@ import visual_exploration
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 from time import time
 from pprint import pprint
@@ -25,6 +25,7 @@ from scipy.sparse import coo_matrix, hstack
 # from pymongo.cursor import CursorType
 
 from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score
 from sklearn.grid_search import GridSearchCV
 from sklearn.preprocessing import Normalizer
 from sklearn.preprocessing import StandardScaler
@@ -40,7 +41,13 @@ logger = logging.getLogger(__name__)
 # client = pymongo.MongoClient()
 # db = client.hygiene
 
-n_jobs = 1  # -1 for full blast when not using computer
+
+if socket.gethostname() == 'ip-172-31-9-131':
+    print('WORKING FULL BLAST')
+    n_jobs = -1  # -1 for full blast when not using computer
+else:
+    print('WORKING SLOW AS SHIT')
+    n_jobs = 1  # since not working on macbook air presently
 
 
 def logPrint(message):
@@ -49,19 +56,10 @@ def logPrint(message):
 
 
 def extract_features(df):
-    features = df.drop(['score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'], axis=1)
-    response = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)
-    transformed_response = df['transformed_score']
-    return features, response, transformed_response
-
-
-def features_review_text():
-    # # quick pipe - bypass the tfidf vectorizer
-    tfidf_matrix = text_processors.load_tfidf_matrix(params=None)
-    print("TFIDF matrix acquired.")
-    train_labels, train_targets = data_grab.get_response()
-    print("Targets loaded.")
-    return tfidf_matrix, train_targets
+    features = df.drop(['score_lvl_1', 'score_lvl_2', 'score_lvl_3'], axis=1)
+    response = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)  #for numerical progression
+    # response = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.int8)  # for categorical response
+    return features, response
 
 
 def griddy(X, y, pipeline):
@@ -100,28 +98,39 @@ def contest_metric(numpy_array_predictions, numpy_array_actual_values):
 
 
 def score_model(X, y, pipeline):
+    # if isinstance(X, scipy.sparse.csr.csr_matrix) or isinstance(X, scipy.sparse.coo.coo_matrix):
+    #     # X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+    #     model = pipeline
+    #     model.fit(X, y)
+    #     scores = accuracy_score(model.predict(X), y)
+    # else:
+    #     scores = cross_val_score(pipeline, X, y, cv=3, n_jobs=n_jobs, verbose=1)
     scores = cross_val_score(pipeline, X, y, cv=3, n_jobs=n_jobs, verbose=1)
     mean_score = np.mean(scores)
     std_dev_score = np.std(scores)
     logPrint("CV score of {} +/- {}".format(mean_score, std_dev_score))
-    return mean_score, std_dev_score
+    return mean_score
 
 
 def score_multiple(X, y, estimator_list, description):
     score_list = []
     for estimator in estimator_list:
         pipeline = Pipeline([
-            # ('tfidf', TfidfVectorizer(stop_words='english')),
             # ('scaler', Normalizer()),
             ('est', estimator),
         ])
-        logPrint("Scoring {}".format(str(pipeline)))
-        logPrint('{} model scored'.format(description))
-        mean_score, std_dev_score = score_model(X, y, pipeline)
+        logPrint('Scoring {} model on\n\t {}'.format(description, str(pipeline)))
+        scores = []
+        for i in y:
+            single_y = i
+            print("Scoring for response: {}".format(single_y))
+            scores.append(score_model(X, y[single_y], pipeline))
         contest_score = contest_scoring(X, y, pipeline)
         dt = str(datetime.now())
         estimator_name = str(estimator).split('(')[0]
-        score_list.append((dt, estimator_name, description, mean_score, std_dev_score, contest_score))
+        row = [dt, estimator_name, description, np.mean(scores), contest_score]
+        row[3:3] = scores
+        score_list.append(row)
         print('\n')
     return score_list
 
@@ -138,8 +147,11 @@ def verify_no_negative(X, y, pipeline):
 
 def contest_scoring(X, y, pipeline):
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
-    model = pipeline.fit(X_train, y_train)
-    score = contest_metric(model.predict(X_test), y_test)[0]
+    s1 = pipeline.fit(X_train, y_train['score_lvl_1']).predict(X_test)
+    s2 = pipeline.fit(X_train, y_train['score_lvl_2']).predict(X_test)
+    s3 = pipeline.fit(X_train, y_train['score_lvl_3']).predict(X_test)
+    results = np.dstack((s1, s2, s3))
+    score = contest_metric(np.round(results[0]), np.array(y_test))
     logPrint("Contest score of {}".format(score))
     return score
 
@@ -155,20 +167,32 @@ def multi_feature_test(X_train, y_train, trans_list):
 
 
 def test_models(X_train, y_train, description):
-    if vectorized_docs:
+    global vectorized_docs
+
+    if vectorized_docs and feature_list:
         X_train = hstack([vectorized_docs[1], coo_matrix(X_train)])
+        logPrint('Matrices combined')
+    elif vectorized_docs and not feature_list:
+        X_train = vectorized_docs[1]
+    elif not vectorized_docs and not feature_list:
+        print('whoops!')
+    elif not vectorized_docs and feature_list:
+        pass
+
+    # free up some memory
+    vectorized_docs = None
 
     # score models
     score_list = score_multiple(X_train, y_train, estimator_list, description)
-    x = PrettyTable(["Datetime", "Estimator", "Description", "Score Mean", "Score StndDev", "Contest Score"])
+    x = PrettyTable(["Datetime", "Estimator", "Description", "Lvl 1 Accuracy", "Lvl 2 Accuracy", "Lvl 3 Accuracy", "Mean Accuracy", "Contest Metric"])
     x.padding_width = 1
     for i in score_list:
         x.add_row(i)
     print x
     print('\n')
-    with open('models/estimator_log.csv', 'a') as f:
+    with open('predictions/estimator_log.csv', 'a') as f:
         writer = csv.writer(f, dialect='excel')
-        # writer.writerow(["Datetime", "Estimator", "Description", "Score Mean", "Score StndDev", "Contest Score"])
+        # writer.writerow(["Datetime", "Estimator", "Description", "Lvl 1 Accuracy", "Lvl 2 Accuracy", "Lvl 3 Accuracy", "Mean Accuracy", "Contest Metric"])
         writer.writerows(score_list)
 
 
@@ -179,10 +203,6 @@ def transform(df, transformation):
 
 def main():
     t0 = time()
-    # train_df, test_df = data_grab.load_dataframes_selects(feature_list)
-    # temp_feature_select = lambda x: x[['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'].extend(feature_list)]
-    # train_df = pd.read_pickle('models/training_df.pkl')
-    # test_df = pd.read_pickle('models/test_df.pkl')
     train_df = data_grab.get_selects('train', feature_list)
     logPrint('dataframes retrieved')
 
@@ -193,23 +213,27 @@ def main():
             trans_list.append(title)
             print("Training set transform")
             train_df = transform(train_df, func)
+    X_train, y_train = extract_features(train_df)
     logPrint('feature extraction finished')
 
-    X_train, y_train, transformed_y_train = extract_features(train_df)
-    print X_train.head()
+    # free up some memory
+    del train_df
+
     if vectorized_docs:
         trans_list.append(vectorized_docs[0])
 
-    multi_feature_test(X_train, y_train, trans_list)
+    if feature_list:
+        multi_feature_test(X_train, y_train, trans_list)
 
-    # make data exploration plots
-    description = '_'.join(feature_list)+'_'+'_'.join(trans_list)
-    visual_exploration.make_plots(X_train[feature_list], y_train, transformed_y_train, description)
-    logPrint('plots made')
+        # make data exploration plots
+        description = '_'.join(feature_list)+'_'+'_'.join(trans_list)
+        visual_exploration.make_plots(X_train[feature_list], y_train, description)
+        logPrint('plots made')
+    else:
+        test_models(X_train, y_train, 'single_feature_'+'_'.join(trans_list))
 
-    logPrint('entire run finished')
     sendMessage.doneTextSend(t0, time(), 'test_model')
-
+    logPrint("Finished in {} seconds.".format(time() - t0))
 
 
 # from sklearn.ensemble import BaggingClassifier
@@ -243,23 +267,26 @@ def main():
 
 from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import SGDClassifier
-# estimator_list = [LinearRegression(),
-#                     MultinomialNB(),
-#                     SGDClassifier()]
+from sklearn.svm import SVC
+estimator_list = [
+                    # GaussianNB(),
+                    SGDClassifier()
+                    ]
 
-estimator_list = [LinearRegression()]
+# estimator_list = [LinearRegression()]
 
-
-feature_list = ['time_delta', 'restaurant_id']
+feature_list = []
+# feature_list = ['time_delta']
 # feature_list = ['time_delta', 'review_text']
 
 print("Grabbing vectorized docs")
-vectorized_docs = text_processors.load_count_docs()
+vectorized_docs = text_processors.load_tfidf_docs('train')
 # vectorized_docs = None
-
 # transformation_list = [('text_length', transformations.text_to_length)]
 transformation_list = None
+
 
 if __name__ == '__main__':
     main()
