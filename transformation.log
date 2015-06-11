@@ -459,3 +459,167 @@ INFO:__main__:102 seconds elapsed from start after entire run.
 	 Pipeline(steps=[('est', SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3, gamma=0.0,
   kernel='rbf', max_iter=-1, probability=False, random_state=None,
   shrinking=True, tol=0.001, verbose=False))])
+2015-06-11 15:35:35,077 : INFO : dataframes retrieved
+2015-06-11 15:35:35,297 : INFO : feature extraction finished
+2015-06-11 15:35:35,342 : INFO : Scoring restaurant_stars/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:35:48,426 : INFO : CV score of -0.0108364310437 +/- 0.00896473328338
+2015-06-11 15:36:00,685 : INFO : CV score of -0.0095788982209 +/- 0.00888047254768
+2015-06-11 15:36:13,622 : INFO : CV score of -0.00331424230867 +/- 0.00238879366578
+2015-06-11 15:36:20,173 : INFO : Contest score of 1.20828967458
+2015-06-11 15:36:20,242 : INFO : Scoring restaurant_attributes_accepts_credit_cards/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:36:34,126 : INFO : CV score of -0.0161336990725 +/- 0.00973009650578
+2015-06-11 15:36:48,097 : INFO : CV score of -0.0157139493058 +/- 0.00774705332547
+2015-06-11 15:37:01,460 : INFO : CV score of -0.00320381206397 +/- 0.00222977872596
+2015-06-11 15:37:07,961 : INFO : Contest score of 1.19636674393
+2015-06-11 15:37:08,003 : INFO : Scoring restaurant_id/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:43:44,123 : INFO : dataframes retrieved
+2015-06-11 15:43:44,634 : INFO : feature extraction finished
+2015-06-11 15:43:44,703 : INFO : Scoring restaurant_stars/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:43:59,012 : INFO : CV score of -0.0108364310437 +/- 0.00896473328338
+2015-06-11 15:44:13,589 : INFO : CV score of -0.0095788982209 +/- 0.00888047254768
+2015-06-11 15:44:26,452 : INFO : CV score of -0.00331424230867 +/- 0.00238879366578
+2015-06-11 15:44:32,397 : INFO : Contest score of 1.20828967458
+2015-06-11 15:44:32,463 : INFO : Scoring restaurant_attributes_accepts_credit_cards/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:44:45,217 : INFO : CV score of -0.0161336990725 +/- 0.00973009650578
+2015-06-11 15:44:57,272 : INFO : CV score of -0.0157139493058 +/- 0.00774705332547
+2015-06-11 15:45:09,579 : INFO : CV score of -0.00320381206397 +/- 0.00222977872596
+2015-06-11 15:45:16,059 : INFO : Contest score of 1.19636674393
+2015-06-11 15:45:16,174 : INFO : Scoring user_votes_useful/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:45:31,987 : INFO : CV score of -0.0157516035643 +/- 0.00979011046566
+2015-06-11 15:45:47,184 : INFO : CV score of -0.0159006533544 +/- 0.00897860206814
+2015-06-11 15:46:07,048 : INFO : CV score of -0.00394807513131 +/- 0.00225658141436
+2015-06-11 15:46:13,577 : INFO : Contest score of 1.19985611095
+2015-06-11 15:46:13,681 : INFO : Scoring restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:46:27,359 : INFO : CV score of -0.0160983062647 +/- 0.0100539832323
+2015-06-11 15:46:39,852 : INFO : CV score of -0.0158934678729 +/- 0.00914898293663
+2015-06-11 15:46:52,132 : INFO : CV score of -0.00722639210288 +/- 0.00701281397317
+2015-06-11 15:46:58,194 : INFO : Contest score of 1.19985611095
+2015-06-11 15:46:58,312 : INFO : Scoring restaurant_stars+restaurant_attributes_accepts_credit_cards/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:47:12,674 : INFO : CV score of -0.011868819502 +/- 0.00848333707285
+2015-06-11 15:47:26,441 : INFO : CV score of -0.00981302663294 +/- 0.00783398535741
+2015-06-11 15:47:40,134 : INFO : CV score of -0.00278448020303 +/- 0.00227923904647
+2015-06-11 15:47:47,914 : INFO : Contest score of 1.20479630635
+2015-06-11 15:47:48,078 : INFO : Scoring restaurant_stars+user_votes_useful/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:48:01,601 : INFO : CV score of -0.0108375210379 +/- 0.00900628413454
+2015-06-11 15:48:15,071 : INFO : CV score of -0.00957177608188 +/- 0.0088863588093
+2015-06-11 15:48:28,327 : INFO : CV score of -0.00331624500434 +/- 0.00241435361733
+2015-06-11 15:48:35,689 : INFO : Contest score of 1.20826699667
+2015-06-11 15:48:35,808 : INFO : Scoring restaurant_stars+restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:48:49,041 : INFO : CV score of -0.011494492485 +/- 0.00836302052577
+2015-06-11 15:49:02,079 : INFO : CV score of -0.00973600289253 +/- 0.00867359106726
+2015-06-11 15:49:15,383 : INFO : CV score of -0.00717148725064 +/- 0.00692612720811
+2015-06-11 15:49:22,435 : INFO : Contest score of 1.20828888313
+2015-06-11 15:49:22,557 : INFO : Scoring restaurant_attributes_accepts_credit_cards+user_votes_useful/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:49:36,994 : INFO : CV score of -0.0161494266739 +/- 0.00975135005049
+2015-06-11 15:49:51,147 : INFO : CV score of -0.0157122091892 +/- 0.00775221361445
+2015-06-11 15:50:05,375 : INFO : CV score of -0.00320977273294 +/- 0.00224501301508
+2015-06-11 15:50:13,365 : INFO : Contest score of 1.19636674393
+2015-06-11 15:50:13,443 : INFO : Scoring restaurant_attributes_accepts_credit_cards+restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:50:27,792 : INFO : CV score of -0.0163952077341 +/- 0.00975495131977
+2015-06-11 15:50:44,627 : INFO : CV score of -0.0156380222402 +/- 0.00799212843274
+2015-06-11 15:50:59,609 : INFO : CV score of -0.00696328119797 +/- 0.0066005340959
+2015-06-11 15:51:08,295 : INFO : Contest score of 1.19539619545
+2015-06-11 15:51:08,377 : INFO : Scoring user_votes_useful+restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:51:22,546 : INFO : CV score of -0.0161043670512 +/- 0.010088361376
+2015-06-11 15:51:36,464 : INFO : CV score of -0.0158906496003 +/- 0.0091527338964
+2015-06-11 15:51:50,596 : INFO : CV score of -0.00722465777953 +/- 0.00702948652715
+2015-06-11 15:51:57,614 : INFO : Contest score of 1.19985611095
+2015-06-11 15:51:57,772 : INFO : Scoring restaurant_stars+restaurant_attributes_accepts_credit_cards+user_votes_useful/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:52:15,244 : INFO : CV score of -0.0118791995694 +/- 0.00851210044719
+2015-06-11 15:52:30,872 : INFO : CV score of -0.00980761857805 +/- 0.00784028428691
+2015-06-11 15:52:47,061 : INFO : CV score of -0.00278920686463 +/- 0.00229684693693
+2015-06-11 15:52:56,570 : INFO : Contest score of 1.20478266567
+2015-06-11 15:52:56,786 : INFO : Scoring restaurant_stars+restaurant_attributes_accepts_credit_cards+restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:53:13,400 : INFO : CV score of -0.0125811581096 +/- 0.00769208593785
+2015-06-11 15:53:32,436 : INFO : CV score of -0.00999801267566 +/- 0.00761427518296
+2015-06-11 15:53:56,742 : INFO : CV score of -0.00708422922588 +/- 0.00661655921769
+2015-06-11 15:54:12,327 : INFO : Contest score of 1.20479630635
+2015-06-11 15:54:12,610 : INFO : Scoring restaurant_stars+user_votes_useful+restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:54:29,919 : INFO : CV score of -0.011495291169 +/- 0.00840353032842
+2015-06-11 15:54:45,036 : INFO : CV score of -0.00972996545119 +/- 0.00867907990505
+2015-06-11 15:55:00,913 : INFO : CV score of -0.0071666265981 +/- 0.00694163757625
+2015-06-11 15:55:14,682 : INFO : Contest score of 1.20826503972
+2015-06-11 15:55:15,924 : INFO : Scoring restaurant_attributes_accepts_credit_cards+user_votes_useful+restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:55:33,572 : INFO : CV score of -0.0164085840235 +/- 0.00977626417935
+2015-06-11 15:55:49,279 : INFO : CV score of -0.0156363705777 +/- 0.00799621850783
+2015-06-11 15:56:05,571 : INFO : CV score of -0.00696266519777 +/- 0.00661484861162
+2015-06-11 15:56:15,181 : INFO : Contest score of 1.19539619545
+2015-06-11 15:56:15,325 : INFO : Scoring restaurant_stars+restaurant_attributes_accepts_credit_cards+user_votes_useful+restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 15:56:32,923 : INFO : CV score of -0.0125904181536 +/- 0.00772047719681
+2015-06-11 15:56:51,276 : INFO : CV score of -0.00999338234593 +/- 0.00762009772365
+2015-06-11 15:57:09,256 : INFO : CV score of -0.00708070154958 +/- 0.00662900891522
+2015-06-11 15:57:20,333 : INFO : Contest score of 1.20476870916
+2015-06-11 16:04:48,880 : INFO : dataframes retrieved
+2015-06-11 16:04:49,242 : INFO : feature extraction finished
+2015-06-11 16:04:49,271 : INFO : Scoring r+e+s+t+a+u+r+a+n+t+_+s+t+a+r+s/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 16:15:08,103 : INFO : dataframes retrieved
+2015-06-11 16:15:08,415 : INFO : feature extraction finished
+2015-06-11 16:15:08,479 : INFO : Scoring restaurant_stars/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 16:15:21,542 : INFO : CV score of -0.0108364310437 +/- 0.00896473328338
+2015-06-11 16:15:35,726 : INFO : CV score of -0.0095788982209 +/- 0.00888047254768
+2015-06-11 16:15:50,063 : INFO : CV score of -0.00331424230867 +/- 0.00238879366578
+2015-06-11 16:15:57,619 : INFO : Contest score of 1.20828967458
+2015-06-11 16:15:57,683 : INFO : Scoring restaurant_attributes_accepts_credit_cards/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 16:16:10,753 : INFO : CV score of -0.0161336990725 +/- 0.00973009650578
+2015-06-11 16:16:25,266 : INFO : CV score of -0.0157139493058 +/- 0.00774705332547
+2015-06-11 16:16:41,345 : INFO : CV score of -0.00320381206397 +/- 0.00222977872596
+2015-06-11 16:16:47,375 : INFO : Contest score of 1.19636674393
+2015-06-11 16:16:47,489 : INFO : Scoring user_votes_useful/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 16:16:59,787 : INFO : CV score of -0.0157516035643 +/- 0.00979011046566
+2015-06-11 16:17:12,924 : INFO : CV score of -0.0159006533544 +/- 0.00897860206814
+2015-06-11 16:17:26,731 : INFO : CV score of -0.00394807513131 +/- 0.00225658141436
+2015-06-11 16:17:32,931 : INFO : Contest score of 1.19985611095
+2015-06-11 16:17:33,041 : INFO : Scoring restaurant_review_count/ model on
+	 Pipeline(steps=[('est', LinearRegression(copy_X=True, fit_intercept=True, n_jobs=1, normalize=False))])
+2015-06-11 16:17:50,390 : INFO : CV score of -0.0160983062647 +/- 0.0100539832323
+2015-06-11 16:18:06,958 : INFO : CV score of -0.0158934678729 +/- 0.00914898293663
+2015-06-11 16:18:22,573 : INFO : CV score of -0.00722639210288 +/- 0.00701281397317
+2015-06-11 16:18:30,694 : INFO : Contest score of 1.19985611095
+2015-06-11 16:22:00,142 : INFO : dataframes retrieved
+2015-06-11 16:22:00,469 : INFO : feature extraction finished
+2015-06-11 16:22:00,533 : INFO : Scoring restaurant_stars/ model on
+	 Pipeline(steps=[('est', GaussianNB())])
+2015-06-11 16:22:30,345 : INFO : CV score of 0.0421696135035 +/- 0.0322268554639
+2015-06-11 16:22:48,006 : INFO : CV score of 0.622964397935 +/- 0.112466361074
+2015-06-11 16:23:09,298 : INFO : CV score of 0.354373752926 +/- 0.030950513944
+2015-06-11 16:23:21,111 : INFO : Contest score of 2.51151341701
+2015-06-11 16:23:21,179 : INFO : Scoring restaurant_attributes_accepts_credit_cards/ model on
+	 Pipeline(steps=[('est', GaussianNB())])
+2015-06-11 16:23:50,748 : INFO : CV score of 0.00971120043515 +/- 0.00236243282935
+2015-06-11 16:24:07,638 : INFO : CV score of 0.0477290269271 +/- 0.0143016685589
+2015-06-11 16:24:29,517 : INFO : CV score of 0.00151925847312 +/- 3.42904073779e-07
+2015-06-11 16:24:42,189 : INFO : Contest score of 2.80289559156
+2015-06-11 16:24:42,315 : INFO : Scoring user_votes_useful/ model on
+	 Pipeline(steps=[('est', GaussianNB())])
+2015-06-11 16:25:10,060 : INFO : CV score of 0.195627435177 +/- 0.000152406866229
+2015-06-11 16:25:27,843 : INFO : CV score of 0.699719605234 +/- 0.0010438624069
+2015-06-11 16:25:48,112 : INFO : CV score of 0.563080667736 +/- 0.000491336967356
+2015-06-11 16:26:00,181 : INFO : Contest score of 2.16362130802
+2015-06-11 16:26:00,272 : INFO : Scoring restaurant_review_count/ model on
+	 Pipeline(steps=[('est', GaussianNB())])
+2015-06-11 16:26:30,165 : INFO : CV score of 0.196834984239 +/- 0.000537288244601
+2015-06-11 16:26:47,257 : INFO : CV score of 0.701808003007 +/- 0.00117694357166
+2015-06-11 16:27:07,435 : INFO : CV score of 0.552637904318 +/- 0.0135615028871
+2015-06-11 16:27:19,668 : INFO : Contest score of 2.1406373872

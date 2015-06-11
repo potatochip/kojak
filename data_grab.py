@@ -329,7 +329,7 @@ def transform_features(df):
     temp_df['restaurant_neighborhood_1'] = temp_df['restaurant_neighborhood_1'].astype('category', categories=set(cats))
     temp_df['restaurant_neighborhood_2'] = temp_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
     temp_df['restaurant_neighborhood_3'] = temp_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
-    df = df.join(temp_df)
+    df = pd.concat([df, temp_df], axis=1)
     df.drop('restaurant_neighborhoods', axis=1, inplace=True)
 
     # expand restaurant categories out
@@ -343,7 +343,7 @@ def transform_features(df):
     temp_df['restaurant_category_5'] = temp_df['restaurant_category_5'].astype('category', categories=set(cats))
     temp_df['restaurant_category_6'] = temp_df['restaurant_category_6'].astype('category', categories=set(cats))
     temp_df['restaurant_category_7'] = temp_df['restaurant_category_7'].astype('category', categories=set(cats))
-    df = df.join(temp_df)
+    df = pd.concat([df, temp_df], axis=1)
     df.drop('restaurant_categories', axis=1, inplace=True)
 
     return df
@@ -414,7 +414,7 @@ def make_train_test():
 
     # save column/feature names since they have grown out of hand
     with open('feature_names.txt', 'w') as f:
-        f.write('\n'.join(training_df.columns.tolist()))
+        f.write('\n'.join(zip(training_df.dtypes.index, training_df.dtypes)))
 
     # store = pd.HDFStore('models/df_store.h5')
     # store.append('training_df', transformed_training_df, data_columns=True, dropna=False)

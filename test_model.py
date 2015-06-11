@@ -156,10 +156,13 @@ def contest_scoring(X, y, pipeline):
     return score
 
 
-def multi_feature_test(X_train, y_train, trans_list):
-    combo_list = []
-    for num in range(1, len(feature_list)+1):
-        combo_list.extend([list(i) for i in combinations(feature_list, num)])
+def multi_feature_test(X_train, y_train, trans_list, combos=False):
+    if combos:
+        combo_list = []
+        for num in range(1, len(feature_list)+1):
+            combo_list.extend([list(i) for i in combinations(feature_list, num)])
+    else:
+        combo_list = [[i] for i in feature_list]
 
     for features in combo_list:
         description = '+'.join(features)+'/'+'+'.join(trans_list)
@@ -223,7 +226,8 @@ def main():
         trans_list.append(vectorized_docs[0])
 
     if feature_list:
-        multi_feature_test(X_train, y_train, trans_list)
+        # turn combos to True in order to try all combinatinos of features
+        multi_feature_test(X_train, y_train, trans_list, combos=False)
 
         # make data exploration plots
         description = '_'.join(feature_list)+'_'+'_'.join(trans_list)
@@ -270,22 +274,23 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
-estimator_list = [
-                    # GaussianNB(),
-                    SGDClassifier()
-                    ]
+# estimator_list = [
+#                     # GaussianNB(),
+#                     SGDClassifier()
+#                     ]
 
-# estimator_list = [LinearRegression()]
+estimator_list = [LinearRegression()]
 
-feature_list = []
-# feature_list = ['time_delta']
-# feature_list = ['time_delta', 'review_text']
 
 print("Grabbing vectorized docs")
+feature_list = []
 vectorized_docs = text_processors.load_tfidf_docs('train')
-# vectorized_docs = None
-# transformation_list = [('text_length', transformations.text_to_length)]
 transformation_list = None
+
+feature_list = ['restaurant_stars', 'restaurant_attributes_accepts_credit_cards', 'user_votes_useful', 'restaurant_review_count']
+vectorized_docs = None
+# transformation_list = [('text_length', transformations.text_to_length)]
+
 
 
 if __name__ == '__main__':

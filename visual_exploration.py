@@ -69,8 +69,8 @@ def strip(X, y, description):
 def make_plots(X, y, description):
     # weigh scores according to competition weights and sum
     scores = y[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']]
-    # transformed_y = pd.DataFrame(scores.multiply([1, 3, 5], axis=1).sum(axis=1), columns=['transformed_score'])
-    transformed_y = pd.DataFrame(scores.apply(lambda x: np.average(x, weights=[1, 3, 5])), columns=['transformed_score'])
+    transformed_y = pd.DataFrame(scores.multiply([1, 3, 5], axis=1).sum(axis=1), columns=['transformed_score'])
+    # transformed_y = pd.DataFrame(scores.apply(lambda x: np.average(x, weights=[1, 3, 5], axis=1)), columns=['transformed_score'])
 
     data = pd.concat([X, y], axis=1)
     # transformed_data = pd.concat([X, transformed_y], axis=1)
@@ -92,11 +92,11 @@ def make_plots(X, y, description):
     coefficients(X, y['score_lvl_2'], 'score_lvl_2')
     coefficients(X, y['score_lvl_3'], 'score_lvl_3')
 
+    # feature correlation plot
+    correlations(data, X)
+
     # strip plots
     strip(X, transformed_y, 'transformed_y')
     strip(X, y['score_lvl_1'], 'score_lvl_1')
     strip(X, y['score_lvl_2'], 'score_lvl_2')
     strip(X, y['score_lvl_3'], 'score_lvl_3')
-
-    # feature correlation plot
-    correlations(data, X)
