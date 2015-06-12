@@ -1,7 +1,3 @@
-'''
-must use python3. cant store unicode in hdf5 in python2
-'''
-
 from time import time
 
 import numpy as np
@@ -12,12 +8,7 @@ from pandas.io.json import json_normalize
 import sendMessage
 import json
 import re
-# from pymongo.cursor import CursorType
 from progressbar import ProgressBar
-# from pymongo import MongoClient
-
-# client = MongoClient()
-# db = client.hygiene
 
 
 def byteify(input):
@@ -86,7 +77,7 @@ def get_restaurants():
             new_kids_on_the_block.append(val)
     restaurants.drop('attributes.Good For Kids', axis=1, inplace=True)
     restaurants['attributes.Good for Kids'] = new_kids_on_the_block
-    restaurants.columns = ['restaurant_attributes_accepts_credit_cards', 'restaurant_attributes_ages_allowed', 'restaurant_attributes_alcohol', 'restaurant_attributes_ambience_casual', 'restaurant_attributes_ambience_classy', 'restaurant_attributes_ambience_divey', 'restaurant_attributes_ambience_hipster', 'restaurant_attributes_ambience_intimate', 'restaurant_attributes_ambience_romantic', 'restaurant_attributes_ambience_touristy', 'restaurant_attributes_ambience_trendy', 'restaurant_attributes_ambience_upscale', 'restaurant_attributes_attire', 'restaurant_attributes_byob', 'restaurant_attributes_byob/corkage', 'restaurant_attributes_by_appointment_only', 'restaurant_attributes_caters', 'restaurant_attributes_coat_check', 'restaurant_attributes_corkage', 'restaurant_attributes_delivery', 'restaurant_attributes_dietary_restrictions_dairy-free', 'restaurant_attributes_dietary_restrictions_gluten-free', 'restaurant_attributes_dietary_restrictions_halal', 'restaurant_attributes_dietary_restrictions_kosher', 'restaurant_attributes_dietary_restrictions_soy-free', 'restaurant_attributes_dietary_restrictions_vegan', 'restaurant_attributes_dietary_restrictions_vegetarian', 'restaurant_attributes_dogs_allowed', 'restaurant_attributes_drive-thr', 'restaurant_attributes_good_for_dancing', 'restaurant_attributes_good_for_groups', 'restaurant_attributes_good_for_breakfast', 'restaurant_attributes_good_for_brunch', 'restaurant_attributes_good_for_dessert', 'restaurant_attributes_good_for_dinner', 'restaurant_attributes_good_for_latenight', 'restaurant_attributes_good_for_lunch', 'restaurant_attributes_good_for_kids', 'restaurant_attributes_happy_hour', 'restaurant_attributes_has_tv', 'restaurant_attributes_music_background_music', 'restaurant_attributes_music_dj', 'restaurant_attributes_music_jukebox', 'restaurant_attributes_music_karaoke', 'restaurant_attributes_music_live', 'restaurant_attributes_music_video', 'restaurant_attributes_noise_level', 'restaurant_attributes_open_24_hours', 'restaurant_attributes_order_at_counter', 'restaurant_attributes_outdoor_seating', 'restaurant_attributes_parking_garage', 'restaurant_attributes_parking_lot', 'restaurant_attributes_parking_street', 'restaurant_attributes_parking_valet', 'restaurant_attributes_parking_validated', 'restaurant_attributes_payment_types_amex', 'restaurant_attributes_payment_types_cash_only', 'restaurant_attributes_payment_types_discover', 'restaurant_attributes_payment_types_mastercard', 'restaurant_attributes_payment_types_visa', 'restaurant_attributes_price_range', 'restaurant_attributes_smoking', 'restaurant_attributes_take-out', 'restaurant_attributes_takes_reservations', 'restaurant_attributes_waiter_service', 'restaurant_attributes_wheelchair_accessible', 'restaurant_attributes_wi-fi', 'restaurant_id', 'restaurant_categories', 'restaurant_city', 'restaurant_full_address', 'restaurant_hours_friday_close', 'restaurant_hours_friday_open', 'restaurant_hours_monday_close', 'restaurant_hours_monday_open', 'restaurant_hours_saturday_close', 'restaurant_hours_saturday_open', 'restaurant_hours_sunday_close', 'restaurant_hours_sunday_open', 'restaurant_hours_thursday_close', 'restaurant_hours_thursday_open', 'restaurant_hours_tuesday_close', 'restaurant_hours_tuesday_open', 'restaurant_hours_wednesday_close', 'restaurant_hours_wednesday_open', 'restaurant_latitude', 'restaurant_longitude', 'restaurant_name', 'restaurant_neighborhoods', 'restaurant_open', 'restaurant_review_count', 'restaurant_stars', 'restaurant_state', 'restaurant_type']
+    restaurants.columns = ['restaurant_attributes_accepts_credit_cards', 'restaurant_attributes_ages_allowed', 'restaurant_attributes_alcohol', 'restaurant_attributes_ambience_casual', 'restaurant_attributes_ambience_classy', 'restaurant_attributes_ambience_divey', 'restaurant_attributes_ambience_hipster', 'restaurant_attributes_ambience_intimate', 'restaurant_attributes_ambience_romantic', 'restaurant_attributes_ambience_touristy', 'restaurant_attributes_ambience_trendy', 'restaurant_attributes_ambience_upscale', 'restaurant_attributes_attire', 'restaurant_attributes_byob', 'restaurant_attributes_byob-corkage', 'restaurant_attributes_by_appointment_only', 'restaurant_attributes_caters', 'restaurant_attributes_coat_check', 'restaurant_attributes_corkage', 'restaurant_attributes_delivery', 'restaurant_attributes_dietary_restrictions_dairy-free', 'restaurant_attributes_dietary_restrictions_gluten-free', 'restaurant_attributes_dietary_restrictions_halal', 'restaurant_attributes_dietary_restrictions_kosher', 'restaurant_attributes_dietary_restrictions_soy-free', 'restaurant_attributes_dietary_restrictions_vegan', 'restaurant_attributes_dietary_restrictions_vegetarian', 'restaurant_attributes_dogs_allowed', 'restaurant_attributes_drive-thr', 'restaurant_attributes_good_for_dancing', 'restaurant_attributes_good_for_groups', 'restaurant_attributes_good_for_breakfast', 'restaurant_attributes_good_for_brunch', 'restaurant_attributes_good_for_dessert', 'restaurant_attributes_good_for_dinner', 'restaurant_attributes_good_for_latenight', 'restaurant_attributes_good_for_lunch', 'restaurant_attributes_good_for_kids', 'restaurant_attributes_happy_hour', 'restaurant_attributes_has_tv', 'restaurant_attributes_music_background_music', 'restaurant_attributes_music_dj', 'restaurant_attributes_music_jukebox', 'restaurant_attributes_music_karaoke', 'restaurant_attributes_music_live', 'restaurant_attributes_music_video', 'restaurant_attributes_noise_level', 'restaurant_attributes_open_24_hours', 'restaurant_attributes_order_at_counter', 'restaurant_attributes_outdoor_seating', 'restaurant_attributes_parking_garage', 'restaurant_attributes_parking_lot', 'restaurant_attributes_parking_street', 'restaurant_attributes_parking_valet', 'restaurant_attributes_parking_validated', 'restaurant_attributes_payment_types_amex', 'restaurant_attributes_payment_types_cash_only', 'restaurant_attributes_payment_types_discover', 'restaurant_attributes_payment_types_mastercard', 'restaurant_attributes_payment_types_visa', 'restaurant_attributes_price_range', 'restaurant_attributes_smoking', 'restaurant_attributes_take-out', 'restaurant_attributes_takes_reservations', 'restaurant_attributes_waiter_service', 'restaurant_attributes_wheelchair_accessible', 'restaurant_attributes_wi-fi', 'restaurant_id', 'restaurant_categories', 'restaurant_city', 'restaurant_full_address', 'restaurant_hours_friday_close', 'restaurant_hours_friday_open', 'restaurant_hours_monday_close', 'restaurant_hours_monday_open', 'restaurant_hours_saturday_close', 'restaurant_hours_saturday_open', 'restaurant_hours_sunday_close', 'restaurant_hours_sunday_open', 'restaurant_hours_thursday_close', 'restaurant_hours_thursday_open', 'restaurant_hours_tuesday_close', 'restaurant_hours_tuesday_open', 'restaurant_hours_wednesday_close', 'restaurant_hours_wednesday_open', 'restaurant_latitude', 'restaurant_longitude', 'restaurant_name', 'restaurant_neighborhoods', 'restaurant_open', 'restaurant_review_count', 'restaurant_stars', 'restaurant_state', 'restaurant_type']
     return restaurants
 
 
@@ -181,45 +172,45 @@ def transform_features(df):
 
     # convert to bool type
     print('convert to bool type')
-    df['restaurant_attributes_accepts_credit_cards'] = df['restaurant_attributes_accepts_credit_cards'].astype('bool')
-    df['restaurant_attributes_byob'] = df['restaurant_attributes_byob'].astype('bool')
-    df['restaurant_attributes_by_appointment_only'] = df['restaurant_attributes_by_appointment_only'].astype('bool')
-    df['restaurant_attributes_caters'] = df['restaurant_attributes_caters'].astype('bool')
-    df['restaurant_attributes_coat_check'] = df['restaurant_attributes_coat_check'].astype('bool')
-    df['restaurant_attributes_corkage'] = df['restaurant_attributes_corkage'].astype('bool')
-    df['restaurant_attributes_delivery'] = df['restaurant_attributes_delivery'].astype('bool')
-    df['restaurant_attributes_dietary_restrictions_dairy-free'] = df['restaurant_attributes_dietary_restrictions_dairy-free'].astype('bool')
-    df['restaurant_attributes_dietary_restrictions_gluten-free'] = df['restaurant_attributes_dietary_restrictions_gluten-free'].astype('bool')
-    df['restaurant_attributes_dietary_restrictions_halal'] = df['restaurant_attributes_dietary_restrictions_halal'].astype('bool')
-    df['restaurant_attributes_dietary_restrictions_kosher'] = df['restaurant_attributes_dietary_restrictions_kosher'].astype('bool')
-    df['restaurant_attributes_dietary_restrictions_soy-free'] = df['restaurant_attributes_dietary_restrictions_soy-free'].astype('bool')
-    df['restaurant_attributes_dietary_restrictions_vegan'] = df['restaurant_attributes_dietary_restrictions_vegan'].astype('bool')
-    df['restaurant_attributes_dietary_restrictions_vegetarian'] = df['restaurant_attributes_dietary_restrictions_vegetarian'].astype('bool')
-    df['restaurant_attributes_dogs_allowed'] = df['restaurant_attributes_dogs_allowed'].astype('bool')
-    df['restaurant_attributes_drive-thr'] = df['restaurant_attributes_drive-thr'].astype('bool')
-    df['restaurant_attributes_good_for_dancing'] = df['restaurant_attributes_good_for_dancing'].astype('bool')
-    df['restaurant_attributes_good_for_groups'] = df['restaurant_attributes_good_for_groups'].astype('bool')
-    df['restaurant_attributes_good_for_breakfast'] = df['restaurant_attributes_good_for_breakfast'].astype('bool')
-    df['restaurant_attributes_good_for_brunch'] = df['restaurant_attributes_good_for_brunch'].astype('bool')
-    df['restaurant_attributes_good_for_dessert'] = df['restaurant_attributes_good_for_dessert'].astype('bool')
-    df['restaurant_attributes_good_for_dinner'] = df['restaurant_attributes_good_for_dinner'].astype('bool')
-    df['restaurant_attributes_good_for_latenight'] = df['restaurant_attributes_good_for_latenight'].astype('bool')
-    df['restaurant_attributes_good_for_lunch'] = df['restaurant_attributes_good_for_lunch'].astype('bool')
-    df['restaurant_attributes_good_for_kids'] = df['restaurant_attributes_good_for_kids'].astype('bool')
-    df['restaurant_attributes_happy_hour'] = df['restaurant_attributes_happy_hour'].astype('bool')
-    df['restaurant_attributes_has_tv'] = df['restaurant_attributes_has_tv'].astype('bool')
-    df['restaurant_attributes_open_24_hours'] = df['restaurant_attributes_open_24_hours'].astype('bool')
-    df['restaurant_attributes_order_at_counter'] = df['restaurant_attributes_order_at_counter'].astype('bool')
-    df['restaurant_attributes_outdoor_seating'] = df['restaurant_attributes_outdoor_seating'].astype('bool')
-    df['restaurant_attributes_payment_types_amex'] = df['restaurant_attributes_payment_types_amex'].astype('bool')
-    df['restaurant_attributes_payment_types_cash_only'] = df['restaurant_attributes_payment_types_cash_only'].astype('bool')
-    df['restaurant_attributes_payment_types_discover'] = df['restaurant_attributes_payment_types_discover'].astype('bool')
-    df['restaurant_attributes_payment_types_mastercard'] = df['restaurant_attributes_payment_types_mastercard'].astype('bool')
-    df['restaurant_attributes_payment_types_visa'] = df['restaurant_attributes_payment_types_visa'].astype('bool')
-    df['restaurant_attributes_take-out'] = df['restaurant_attributes_take-out'].astype('bool')
-    df['restaurant_attributes_takes_reservations'] = df['restaurant_attributes_takes_reservations'].astype('bool')
-    df['restaurant_attributes_waiter_service'] = df['restaurant_attributes_waiter_service'].astype('bool')
-    df['restaurant_attributes_wheelchair_accessible'] = df['restaurant_attributes_wheelchair_accessible'].astype('bool')
+    df = easy_bools(df, 'restaurant_attributes_accepts_credit_cards')
+    df = easy_bools(df, 'restaurant_attributes_byob')
+    df = easy_bools(df, 'restaurant_attributes_by_appointment_only')
+    df = easy_bools(df, 'restaurant_attributes_caters')
+    df = easy_bools(df, 'restaurant_attributes_coat_check')
+    df = easy_bools(df, 'restaurant_attributes_corkage')
+    df = easy_bools(df, 'restaurant_attributes_delivery')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_dairy-free')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_gluten-free')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_halal')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_kosher')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_soy-free')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_vegan')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_vegetarian')
+    df = easy_bools(df, 'restaurant_attributes_dogs_allowed')
+    df = easy_bools(df, 'restaurant_attributes_drive-thr')
+    df = easy_bools(df, 'restaurant_attributes_good_for_dancing')
+    df = easy_bools(df, 'restaurant_attributes_good_for_groups')
+    df = easy_bools(df, 'restaurant_attributes_good_for_breakfast')
+    df = easy_bools(df, 'restaurant_attributes_good_for_brunch')
+    df = easy_bools(df, 'restaurant_attributes_good_for_dessert')
+    df = easy_bools(df, 'restaurant_attributes_good_for_dinner')
+    df = easy_bools(df, 'restaurant_attributes_good_for_latenight')
+    df = easy_bools(df, 'restaurant_attributes_good_for_lunch')
+    df = easy_bools(df, 'restaurant_attributes_good_for_kids')
+    df = easy_bools(df, 'restaurant_attributes_happy_hour')
+    df = easy_bools(df, 'restaurant_attributes_has_tv')
+    df = easy_bools(df, 'restaurant_attributes_open_24_hours')
+    df = easy_bools(df, 'restaurant_attributes_order_at_counter')
+    df = easy_bools(df, 'restaurant_attributes_outdoor_seating')
+    df = easy_bools(df, 'restaurant_attributes_payment_types_amex')
+    df = easy_bools(df, 'restaurant_attributes_payment_types_cash_only')
+    df = easy_bools(df, 'restaurant_attributes_payment_types_discover')
+    df = easy_bools(df, 'restaurant_attributes_payment_types_mastercard')
+    df = easy_bools(df, 'restaurant_attributes_payment_types_visa')
+    df = easy_bools(df, 'restaurant_attributes_take-out')
+    df = easy_bools(df, 'restaurant_attributes_takes_reservations')
+    df = easy_bools(df, 'restaurant_attributes_waiter_service')
+    df = easy_bools(df, 'restaurant_attributes_wheelchair_accessible')
 
     # flatten ambience into one column
     print('flatten ambience into one column')
@@ -241,7 +232,6 @@ def transform_features(df):
     df.loc[touristy, 'restaurant_ambience'] = 'touristy'
     df.loc[trendy, 'restaurant_ambience'] = 'trendy'
     df.loc[upscale, 'restaurant_ambience'] = 'upscale'
-    df['restaurant_ambience'] = df['restaurant_ambience'].astype('category')
     df.drop(['restaurant_attributes_ambience_casual', 'restaurant_attributes_ambience_classy', 'restaurant_attributes_ambience_divey', 'restaurant_attributes_ambience_hipster', 'restaurant_attributes_ambience_intimate', 'restaurant_attributes_ambience_romantic', 'restaurant_attributes_ambience_touristy', 'restaurant_attributes_ambience_trendy', 'restaurant_attributes_ambience_upscale'], axis=1, inplace=True)
 
     # flatten music into one column
@@ -258,7 +248,6 @@ def transform_features(df):
     df.loc[karaoke, 'restaurant_music'] = 'karaoke'
     df.loc[live, 'restaurant_music'] = 'live'
     df.loc[video, 'restaurant_music'] = 'video'
-    df['restaurant_music'] = df['restaurant_music'].astype('category')
     df.drop(['restaurant_attributes_music_background_music', 'restaurant_attributes_music_dj', 'restaurant_attributes_music_jukebox', 'restaurant_attributes_music_karaoke', 'restaurant_attributes_music_live', 'restaurant_attributes_music_video'], axis=1, inplace=True)
 
     # flatten parking into one column
@@ -273,13 +262,12 @@ def transform_features(df):
     df.loc[street, 'restaurant_parking'] = 'street'
     df.loc[valet, 'restaurant_parking'] = 'valet'
     df.loc[validated, 'restaurant_parking'] = 'validated'
-    df['restaurant_parking'] = df['restaurant_parking'].astype('category')
     df.drop(['restaurant_attributes_parking_garage', 'restaurant_attributes_parking_lot', 'restaurant_attributes_parking_street', 'restaurant_attributes_parking_valet', 'restaurant_attributes_parking_validated'], axis=1, inplace=True)
 
     # convert address to just the street name and zip code
     print('convert address to just the street name and zip code')
-    df['restaurant_street'] = df['restaurant_full_address'].apply(lambda x: re.search('[A-z].*', x).group() if re.search('[A-z].*', x) is not None else np.nan).astype('category')
-    df['restaruant_zipcode'] = df['restaurant_full_address'].apply(lambda x: re.search('\d+$', x).group() if re.search('\d+$', x) is not None else np.nan).astype('category')
+    df['restaurant_street'] = df['restaurant_full_address'].apply(lambda x: re.search('[A-z].*', x).group() if re.search('[A-z].*', x) is not None else np.nan)
+    df['restaurant_zipcode'] = df['restaurant_full_address'].apply(lambda x: re.search('\d+$', x).group() if re.search('\d+$', x) is not None else np.nan)
     # df.drop('restaurant_full_address', axis=1, inplace=True)
 
     # sum the checkin values
@@ -290,61 +278,6 @@ def transform_features(df):
     # force text to non-unicode
     print('force text to non-unicode')
     df['review_text'] = df['review_text'].apply(lambda x: unicodedata.normalize('NFKD', x) if type(x) != str else x)
-
-    # make categorical type
-    print('make categorical type')
-    df['restaurant_attributes_ages_allowed'] = df['restaurant_attributes_ages_allowed'].astype('category')
-    df['restaurant_attributes_alcohol'] = df['restaurant_attributes_alcohol'].astype('category')
-    df['restaurant_attributes_attire'] = df['restaurant_attributes_attire'].astype('category')
-    df['restaurant_attributes_byob/corkage'] = df['restaurant_attributes_byob/corkage'].astype('category')
-    df['restaurant_attributes_noise_level'] = df['restaurant_attributes_noise_level'].astype('category')
-    df['restaurant_attributes_smoking'] = df['restaurant_attributes_smoking'].astype('category')
-    df['restaurant_attributes_wi-fi'] = df['restaurant_attributes_wi-fi'].astype('category')
-    df['restaurant_city'] = df['restaurant_city'].astype('category')
-    df['restaurant_hours_friday_close'] = df['restaurant_hours_friday_close'].astype('category')
-    df['restaurant_hours_friday_open'] = df['restaurant_hours_friday_open'].astype('category')
-    df['restaurant_hours_monday_close'] = df['restaurant_hours_monday_close'].astype('category')
-    df['restaurant_hours_monday_open'] = df['restaurant_hours_monday_open'].astype('category')
-    df['restaurant_hours_saturday_close'] = df['restaurant_hours_saturday_close'].astype('category')
-    df['restaurant_hours_saturday_open'] = df['restaurant_hours_saturday_open'].astype('category')
-    df['restaurant_hours_sunday_close'] = df['restaurant_hours_sunday_close'].astype('category')
-    df['restaurant_hours_sunday_open'] = df['restaurant_hours_sunday_open'].astype('category')
-    df['restaurant_hours_thursday_close'] = df['restaurant_hours_thursday_close'].astype('category')
-    df['restaurant_hours_thursday_open'] = df['restaurant_hours_thursday_open'].astype('category')
-    df['restaurant_hours_tuesday_close'] = df['restaurant_hours_tuesday_close'].astype('category')
-    df['restaurant_hours_tuesday_open'] = df['restaurant_hours_tuesday_open'].astype('category')
-    df['restaurant_hours_wednesday_close'] = df['restaurant_hours_wednesday_close'].astype('category')
-    df['restaurant_hours_wednesday_open'] = df['restaurant_hours_wednesday_open'].astype('category')
-    df['restaurant_name'] = df['restaurant_name'].astype('category')
-    df['user_id'] = df['user_id'].astype('category')
-    df['user_name'] = df['user_name'].astype('category')
-
-    # make review_text categorical to make it easier to work with
-    df['review_text'] = df['review_text'].astype('category')
-
-    # expand neighborhoods out
-    print('expand neighborhoods out')
-    neigh_df = pd.DataFrame(df['restaurant_neighborhoods'].tolist(), columns=['restaurant_neighborhood_1', 'restaurant_neighborhood_2', 'restaurant_neighborhood_3'])
-    cats = neigh_df.restaurant_neighborhood_1.astype('category').cat.categories.tolist() + neigh_df.restaurant_neighborhood_2.astype('category').cat.categories.tolist() + neigh_df.restaurant_neighborhood_3.astype('category').cat.categories.tolist()
-    neigh_df['restaurant_neighborhood_1'] = neigh_df['restaurant_neighborhood_1'].astype('category', categories=set(cats))
-    neigh_df['restaurant_neighborhood_2'] = neigh_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
-    neigh_df['restaurant_neighborhood_3'] = neigh_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
-    df = pd.concat([df, neigh_df], axis=1, join_axes=[df.index])
-    df.drop('restaurant_neighborhoods', axis=1, inplace=True)
-
-    # expand restaurant categories out
-    print('expand restaurant categories out')
-    categ_df = pd.DataFrame(df['restaurant_categories'].tolist(), columns=['restaurant_category_1', 'restaurant_category_2', 'restaurant_category_3', 'restaurant_category_4', 'restaurant_category_5', 'restaurant_category_6', 'restaurant_category_7'])
-    cats = categ_df.restaurant_category_1.astype('category').cat.categories.tolist() + categ_df.restaurant_category_2.astype('category').cat.categories.tolist() + categ_df.restaurant_category_3.astype('category').cat.categories.tolist() + categ_df.restaurant_category_4.astype('category').cat.categories.tolist() + categ_df.restaurant_category_5.astype('category').cat.categories.tolist() + categ_df.restaurant_category_6.astype('category').cat.categories.tolist() + categ_df.restaurant_category_7.astype('category').cat.categories.tolist()
-    categ_df['restaurant_category_1'] = categ_df['restaurant_category_1'].astype('category', categories=set(cats))
-    categ_df['restaurant_category_2'] = categ_df['restaurant_category_2'].astype('category', categories=set(cats))
-    categ_df['restaurant_category_3'] = categ_df['restaurant_category_3'].astype('category', categories=set(cats))
-    categ_df['restaurant_category_4'] = categ_df['restaurant_category_4'].astype('category', categories=set(cats))
-    categ_df['restaurant_category_5'] = categ_df['restaurant_category_5'].astype('category', categories=set(cats))
-    categ_df['restaurant_category_6'] = categ_df['restaurant_category_6'].astype('category', categories=set(cats))
-    categ_df['restaurant_category_7'] = categ_df['restaurant_category_7'].astype('category', categories=set(cats))
-    df = pd.concat([df, categ_df], axis=1, join_axes=[df.index])
-    df.drop('restaurant_categories', axis=1, inplace=True)
 
     return df
 
@@ -362,13 +295,107 @@ def make_feature_response(feature_df, response_df):
     return features_response
 
 
+def easy_bools(df, column):
+    df[column] = df[column].astype('bool')
+    return df
+
+
+def easy_categories(train_df, test_df, column):
+    cats = train_df[column].astype('category').cat.categories.tolist() + test_df[column].astype('category').cat.categories.tolist()
+    train_df[column] = train_df[column].astype('category', categories=set(cats))
+    test_df[column] = test_df[column].astype('category', categories=set(cats))
+    return train_df, test_df
+
+
+def make_categoricals(train_df, test_df):
+    # make categorical type
+    print('make categorical types')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_ages_allowed')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_alcohol')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_attire')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_byob')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_byob-corkage')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_noise_level')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_smoking')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_wi-fi')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_city')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_friday_close')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_friday_open')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_monday_close')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_monday_open')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_saturday_close')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_saturday_open')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_sunday_close')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_sunday_open')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_thursday_close')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_thursday_open')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_tuesday_close')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_tuesday_open')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_wednesday_close')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_wednesday_open')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_name')
+    train_df, test_df = easy_categories(train_df, test_df, column='user_id')
+    train_df, test_df = easy_categories(train_df, test_df, column='user_name')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_id')
+
+    # make review_text categorical to make it easier to work with
+    train_df, test_df = easy_categories(train_df, test_df, column='review_text')
+
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_ambience')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_music')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_parking')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_street')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_zipcode')
+
+    # expand neighborhoods out
+    print('expand neighborhoods out')
+    train_temp_df = pd.DataFrame(train_df['restaurant_neighborhoods'].tolist(), columns=['restaurant_neighborhood_1', 'restaurant_neighborhood_2', 'restaurant_neighborhood_3'])
+    test_temp_df = pd.DataFrame(test_df['restaurant_neighborhoods'].tolist(), columns=['restaurant_neighborhood_1', 'restaurant_neighborhood_2', 'restaurant_neighborhood_3'])
+    cats = train_temp_df.restaurant_neighborhood_1.astype('category').cat.categories.tolist() + train_temp_df.restaurant_neighborhood_2.astype('category').cat.categories.tolist() + train_temp_df.restaurant_neighborhood_3.astype('category').cat.categories.tolist() + test_temp_df.restaurant_neighborhood_1.astype('category').cat.categories.tolist() + test_temp_df.restaurant_neighborhood_2.astype('category').cat.categories.tolist() + test_temp_df.restaurant_neighborhood_3.astype('category').cat.categories.tolist()
+    train_temp_df['restaurant_neighborhood_1'] = train_temp_df['restaurant_neighborhood_1'].astype('category', categories=set(cats))
+    train_temp_df['restaurant_neighborhood_2'] = train_temp_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
+    train_temp_df['restaurant_neighborhood_3'] = train_temp_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
+    train_df = pd.concat([train_df, train_temp_df], axis=1, join_axes=[train_df.index])
+    train_df.drop('restaurant_neighborhoods', axis=1, inplace=True)
+    test_temp_df['restaurant_neighborhood_1'] = test_temp_df['restaurant_neighborhood_1'].astype('category', categories=set(cats))
+    test_temp_df['restaurant_neighborhood_2'] = test_temp_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
+    test_temp_df['restaurant_neighborhood_3'] = test_temp_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
+    test_df = pd.concat([test_df, test_temp_df], axis=1, join_axes=[test_df.index])
+    test_df.drop('restaurant_neighborhoods', axis=1, inplace=True)
+
+    # expand restaurant categories out
+    print('expand restaurant categories out')
+    train_temp_df = pd.DataFrame(train_df['restaurant_categories'].tolist(), columns=['restaurant_category_1', 'restaurant_category_2', 'restaurant_category_3', 'restaurant_category_4', 'restaurant_category_5', 'restaurant_category_6', 'restaurant_category_7'])
+    test_temp_df = pd.DataFrame(test_df['restaurant_categories'].tolist(), columns=['restaurant_category_1', 'restaurant_category_2', 'restaurant_category_3', 'restaurant_category_4', 'restaurant_category_5', 'restaurant_category_6', 'restaurant_category_7'])
+    cats = train_temp_df.restaurant_category_1.astype('category').cat.categories.tolist() + train_temp_df.restaurant_category_2.astype('category').cat.categories.tolist() + train_temp_df.restaurant_category_3.astype('category').cat.categories.tolist() + train_temp_df.restaurant_category_4.astype('category').cat.categories.tolist() + train_temp_df.restaurant_category_5.astype('category').cat.categories.tolist() + train_temp_df.restaurant_category_6.astype('category').cat.categories.tolist() + train_temp_df.restaurant_category_7.astype('category').cat.categories.tolist() + test_temp_df.restaurant_category_1.astype('category').cat.categories.tolist() + test_temp_df.restaurant_category_2.astype('category').cat.categories.tolist() + test_temp_df.restaurant_category_3.astype('category').cat.categories.tolist() + test_temp_df.restaurant_category_4.astype('category').cat.categories.tolist() + test_temp_df.restaurant_category_5.astype('category').cat.categories.tolist() + test_temp_df.restaurant_category_6.astype('category').cat.categories.tolist() + test_temp_df.restaurant_category_7.astype('category').cat.categories.tolist()
+    train_temp_df['restaurant_category_1'] = train_temp_df['restaurant_category_1'].astype('category', categories=set(cats))
+    train_temp_df['restaurant_category_2'] = train_temp_df['restaurant_category_2'].astype('category', categories=set(cats))
+    train_temp_df['restaurant_category_3'] = train_temp_df['restaurant_category_3'].astype('category', categories=set(cats))
+    train_temp_df['restaurant_category_4'] = train_temp_df['restaurant_category_4'].astype('category', categories=set(cats))
+    train_temp_df['restaurant_category_5'] = train_temp_df['restaurant_category_5'].astype('category', categories=set(cats))
+    train_temp_df['restaurant_category_6'] = train_temp_df['restaurant_category_6'].astype('category', categories=set(cats))
+    train_temp_df['restaurant_category_7'] = train_temp_df['restaurant_category_7'].astype('category', categories=set(cats))
+    train_df = pd.concat([train_df, train_temp_df], axis=1, join_axes=[train_df.index])
+    train_df.drop('restaurant_categories', axis=1, inplace=True)
+    test_temp_df['restaurant_category_1'] = test_temp_df['restaurant_category_1'].astype('category', categories=set(cats))
+    test_temp_df['restaurant_category_2'] = test_temp_df['restaurant_category_2'].astype('category', categories=set(cats))
+    test_temp_df['restaurant_category_3'] = test_temp_df['restaurant_category_3'].astype('category', categories=set(cats))
+    test_temp_df['restaurant_category_4'] = test_temp_df['restaurant_category_4'].astype('category', categories=set(cats))
+    test_temp_df['restaurant_category_5'] = test_temp_df['restaurant_category_5'].astype('category', categories=set(cats))
+    test_temp_df['restaurant_category_6'] = test_temp_df['restaurant_category_6'].astype('category', categories=set(cats))
+    test_temp_df['restaurant_category_7'] = test_temp_df['restaurant_category_7'].astype('category', categories=set(cats))
+    test_df = pd.concat([test_df, test_temp_df], axis=1, join_axes=[test_df.index])
+    test_df.drop('restaurant_categories', axis=1, inplace=True)
+
+    return train_df, test_df
+
+
 def make_train_test():
     full_features = get_full_features()
 
     # transform features
     print('transforming features')
     transformed_features = transform_features(full_features)
-    print('finished transformations')
 
     training_response = pd.read_csv("data/train_labels.csv", index_col=None)
     training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
@@ -378,13 +405,7 @@ def make_train_test():
     training_df = make_feature_response(transformed_features, training_response)
     test_df = make_feature_response(transformed_features, submission)
 
-    # convert restaurant_id's into numbers representing the restaurant with same categories
-    cats = training_df.restaurant_id.astype('category').cat.categories.tolist() + test_df.restaurant_id.astype('category').cat.categories.tolist()
-    training_df['restaurant_id'] = training_df['restaurant_id'].astype('category', categories=set(cats))
-    test_df['restaurant_id'] = test_df['restaurant_id'].astype('category', categories=set(cats))
-    # restaurant_categories = pd.Categorical.from_array(train_df.restaurant_id)
-    # train_df['restaurant_id_number'] = restaurant_categories.codes
-    # test_df['restaurant_id_number'] = restaurant_categories.categories.get_indexer(test_df.restaurant_id)
+    training_df, test_df = make_categoricals(training_df, test_df)
 
     # create number representing days passed between inspection date and review date
     training_df['time_delta'] = (training_df.inspection_date - training_df.review_date).astype('timedelta64[D]')
@@ -397,13 +418,14 @@ def make_train_test():
     training_df['inspection_dayofweek'] = training_df['inspection_date'].dt.dayofweek
     training_df['inspection_quarter'] = training_df['inspection_date'].dt.quarter
     training_df['inspection_dayofyear'] = training_df['inspection_date'].dt.dayofyear
-
     test_df['inspection_year'] = test_df['inspection_date'].dt.year
     test_df['inspection_month'] = test_df['inspection_date'].dt.month
     test_df['inspection_day'] = test_df['inspection_date'].dt.day
     test_df['inspection_dayofweek'] = test_df['inspection_date'].dt.dayofweek
     test_df['inspection_quarter'] = test_df['inspection_date'].dt.quarter
     test_df['inspection_dayofyear'] = test_df['inspection_date'].dt.dayofyear
+
+    print('finished transformations')
 
     # # save dataframes
     training_df.to_pickle('models/training_df.pkl')
@@ -416,37 +438,10 @@ def make_train_test():
         f.write('\n'.join(choices_choices))
 
     # store = pd.HDFStore('models/df_store.h5')
-    # store.append('training_df', transformed_training_df, data_columns=True, dropna=False)
+    # store.append('training_df', training_df, data_columns=True, dropna=False)
     # print('training_df in hdfstore')
-    # store.append('test_df', transformed_test_df, data_columns=True, dropna=False)
+    # store.append('test_df', test_df, data_columns=True, dropna=False)
     # store.close()
-    # dear_mongo(transformed_training_df, 'train')
-    # dear_mongo(transformed_test_df, 'test')
-
-
-# def dear_mongo(df, collection):
-#     print('working on {}'.format(collection))
-#     pbar = ProgressBar(maxval=df.shape[0]).start()
-#     for index, row in enumerate(df.iterrows()):
-#         record = json.loads(row[1].to_json())
-#         db[collection].save(record)
-#         pbar.update(index)
-#     pbar.finish()
-
-
-# def fetch_mongo(collection, features):
-#     print("Getting documents")
-#     features.extend(['inspection_id', 'inspection_date', 'restaurant_id', 'time_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3', 'transformed_score'])
-#     selection = {i: 1 for i in features}.update({"_id": 0})
-#     cursor = db[collection].find({}, selection, no_cursor_timeout=True, cursor_type=CursorType.EXHAUST)
-#     pbar = ProgressBar(maxval=cursor.count()).start()
-#     df = pd.DataFrame()
-#     for index, row in enumerate(cursor):
-#         df = df.append(row, ignore_index=True)
-#         pbar.update(index)
-#     pbar.finish()
-#     cursor.close()
-#     return df
 
 
 def get_selects(frame, features=None):

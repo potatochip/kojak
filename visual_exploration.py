@@ -9,7 +9,7 @@ import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 
-# plt.rcParams["figure.figsize"] = (10, 8)
+plt.rcParams["figure.figsize"] = (10, 8)
 
 
 def distributions(variable, filename):
@@ -35,7 +35,9 @@ def coefficients(X, y, y_formula):
     formula = y_formula + " ~ " + X_formula
     print("\n* Formula: {}".format(formula))
     data = pd.concat([X, y], axis=1)
-    sns.coefplot(formula, data, intercept=True)
+    g = sns.coefplot(formula, data, intercept=True)
+    g.set_xticklabels(rotation=90)
+    plt.tight_layout()
     plt.savefig('visuals/coefficient_'+X_title+'_'+y_formula)
     print('visuals/coefficient_'+X_title+'_'+y_formula)
     plt.close()

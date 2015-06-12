@@ -16,10 +16,14 @@ stopwords = set(nltk.corpus.stopwords.words('english'))
 stemmer = SnowballStemmer("english")
 
 
-def get_review_text_categories(df):
-    # returns the review text paired in a dictionary with its category number
-    categories = df.review_text.cat.categories
-    df.review_text.cat.codes
+def get_processed_text(df, column, description):
+    # returns the processed text paired in a dictionary with its index category number
+    with open('models/tokenized_'+column+'_'+description, 'w') as f:
+        processed = pickle.load(f)
+    codes = df[column].cat.codes
+    docs = []
+    for i in codes:
+        docs.append(processed[i])
 
 
 def text_to_word2vec(key, df, column):
@@ -43,17 +47,16 @@ def load_processed(column, description):
 
 
 def process_text(df, column, description):
+    print("Processing {} {}".format(column, description))
     temp_list = []
-    pbar = ProgressBar(maxval=df.shape[0]).start()
-    for index, i in enumerate(df[column].astype('category').cat.categories):
-        # temp_list.append(tokenize(i, spell=False, stem=False, lemma=True, lower=True, stop=True))
-        temp_list.append(split_into_lemmas(i))
+    pbar = ProgressBar(maxval=len(df[column].cat.categories)).start()
+    for index, i in enumerate(df[column].cat.categories):
+        temp_list.append(tokenize(i, spell=False, stem=False, lemma=True, lower=True, stop=True))
         pbar.update(index)
     with open('models/tokenized_'+column+'_'+description, 'w') as f:
         pickle.dump(temp_list, f)
     print("Pre-token shape of {} and post-token shape of {}.".format(df[column].shape, len(temp_list)))
     pbar.finish()
-    return temp_list
 
 
 def tokenize(text, spell=False, stem=False, lemma=True, lower=False, stop=False):
@@ -69,7 +72,6 @@ def tokenize(text, spell=False, stem=False, lemma=True, lower=False, stop=False)
         words = words.lemmatize()
     if stem:
         words = [stemmer.stem(w) for w in words]
-
     if stop:
         tokens = [w for w in words if w.isalpha() and w not in stopwords]
     else:
@@ -161,8 +163,10 @@ def main():
     # vec, train_tfidf = tfidf_custom_token_and_save(train_text)
 
     feature_list = ['review_text']
-    train_df, test_df = data_grab.load_dataframes(feature_list)
+    train_df = data_grab.get_selects('train', feature_list)
     process_text(train_df, 'review_text', 'train_lemma')
+    del train_df
+    test_df = data_grab.get_selects('train', feature_list)
     process_text(test_df, 'review_text', 'test_lemma')
 
     t1 = time()
