@@ -1,5 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>{{name}}</h1>
-{{data | safe}}
+{{ data.to_html(classes="table table-striped") | safe}}
 {% endblock %}

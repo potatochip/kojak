@@ -13,7 +13,7 @@ from progressbar import ProgressBar
 
 def byteify(input):
     if isinstance(input, dict):
-        return {byteify(key):byteify(value) for key,value in input.iteritems()}
+        return {byteify(key): byteify(value) for key, value in input.iteritems()}
     elif isinstance(input, list):
         return [byteify(element) for element in input]
     elif isinstance(input, unicode):
@@ -43,6 +43,8 @@ def get_tips():
         for line in f:
             data.append(byteify(json.loads(line)))
     tips = json_normalize(data)
+    # renaming tip likes to what would be equivalent in reviews
+    tips = tips.rename(columns={'likes': 'votes.useful'})
     return tips
 
 
@@ -99,7 +101,7 @@ def get_full_features():
 
     # some nan's will exist where reviews columns and tips columns don't match up
     reviews_tips = reviews.append(tips)
-    reviews_tips.columns = ['restaurant_id', 'review_date', 'tip_likes', 'review_id', 'review_stars', 'review_text', 'review_type', 'user_id', 'review_votes_cool', 'review_votes_funny', 'review_votes_useful']
+    reviews_tips.columns = ['restaurant_id', 'review_date', 'review_id', 'review_stars', 'review_text', 'review_type', 'user_id', 'review_votes_cool', 'review_votes_funny', 'review_votes_useful']
 
     # # saving this for tfidf vectorizer training later
     # with open('models/reviews_tips_original_text.pkl', 'w') as f:
@@ -135,6 +137,36 @@ def get_full_features():
     full_features = full_features[pd.notnull(full_features.restaurant_id)]
 
     return full_features
+
+
+def flatten_reviews(label_df, reviews):
+    """
+        label_df: inspection dataframe with date, restaurant_id
+        reviews: dataframe of reviews
+        Returns all of the text of reviews previous to each
+        inspection listed in label_df.
+    """
+    reviews_dictionary = {}
+    N = len(label_df)
+
+    for i, (pid, row) in enumerate(label_df.iterrows()):
+        # we want to only get reviews for this restaurant that ocurred before the inspection
+        pre_inspection_mask = (reviews.date < row.date) & (reviews.restaurant_id == row.restaurant_id)
+
+        # pre-inspection reviews
+        pre_inspection_reviews = reviews[pre_inspection_mask]
+
+        # join the text
+        all_text = ' '.join(pre_inspection_reviews.text)
+
+        # store in dictionary
+        reviews_dictionary[pid] = all_text
+
+        if i % 2500 == 0:
+            print '{} out of {}'.format(i, N)
+
+    # return series in same order as the original data frame
+    return pd.Series(reviews_dictionary)[label_df.index]
 
 
 def transform_features(df):
@@ -388,6 +420,23 @@ def make_categoricals(train_df, test_df):
     test_df.drop('restaurant_categories', axis=1, inplace=True)
 
     return train_df, test_df
+
+
+def make_flat():
+    '''
+    same number of rows and observations as response dataframe.
+    reviews flattened and duplicate restaurants with changed name taken care of.
+    '''
+    training_response = pd.read_csv("data/train_labels.csv", index_col=None)
+    training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
+    submission_response = pd.read_csv("data/SubmissionFormat.csv", index_col=None)
+    submission_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
+
+    reviews = get_reviews()
+    tips = get_tips()
+    reviews_tips = reviews.append(tips)
+    reviews_tips.columns = ['restaurant_id', 'review_date', 'review_id', 'review_stars', 'review_text', 'review_type', 'user_id', 'review_votes_cool', 'review_votes_funny', 'review_votes_useful']
+
 
 
 def make_train_test():

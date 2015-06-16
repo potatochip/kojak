@@ -623,3 +623,9 @@ INFO:__main__:102 seconds elapsed from start after entire run.
 2015-06-11 16:26:47,257 : INFO : CV score of 0.701808003007 +/- 0.00117694357166
 2015-06-11 16:27:07,435 : INFO : CV score of 0.552637904318 +/- 0.0135615028871
 2015-06-11 16:27:19,668 : INFO : Contest score of 2.1406373872
+2015-06-12 09:58:20,120 : INFO : Dataframes loaded
+2015-06-12 09:58:20,145 : INFO : feature extraction finished
+2015-06-12 10:01:58,911 : INFO : Dataframes loaded
+2015-06-12 10:01:58,913 : INFO : feature extraction finished
+2015-06-12 10:28:43,545 : INFO : Dataframes loaded
+2015-06-12 10:28:43,550 : INFO : feature extraction finished

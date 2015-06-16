@@ -1,12 +1,11 @@
 restaurant_id - category
 review_date - datetime64[ns]
-tip_likes - float64
 review_stars - float64
 review_text - category
 user_id - category
 review_votes_cool - float64
 review_votes_funny - float64
-review_votes_useful - float64
+review_votes_useful - int64
 user_average_stars - float64
 user_compliments_cool - float64
 user_compliments_cute - float64

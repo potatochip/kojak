@@ -113,6 +113,7 @@ def score_model(X, y, pipeline):
 
 
 def score_multiple(X, y, estimator_list, description):
+    # scores multiple estimators
     score_list = []
     for estimator in estimator_list:
         pipeline = Pipeline([
@@ -274,21 +275,22 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 # estimator_list = [
 #                     # GaussianNB(),
 #                     SGDClassifier()
 #                     ]
 
-estimator_list = [LinearRegression()]
+estimator_list = [RandomForestClassifier()]
 
 
 print("Grabbing vectorized docs")
-feature_list = []
+feature_list = None
 vectorized_docs = text_processors.load_tfidf_docs('train')
 transformation_list = None
 
-feature_list = ['restaurant_stars', 'restaurant_attributes_accepts_credit_cards', 'user_votes_useful', 'restaurant_review_count']
-vectorized_docs = None
+# feature_list = ['restaurant_stars', 'restaurant_attributes_accepts_credit_cards', 'user_votes_useful', 'restaurant_review_count']
+# vectorized_docs = None
 # transformation_list = [('text_length', transformations.text_to_length)]
 
 

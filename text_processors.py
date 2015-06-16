@@ -18,30 +18,22 @@ stemmer = SnowballStemmer("english")
 
 def get_processed_text(df, column, description):
     # returns the processed text paired in a dictionary with its index category number
-    with open('models/tokenized_'+column+'_'+description, 'w') as f:
+    with open('models/tokenized_'+column+'_'+description) as f:
         processed = pickle.load(f)
     codes = df[column].cat.codes
     docs = []
     for i in codes:
         docs.append(processed[i])
-
-
-def text_to_word2vec(key, df, column):
-    processed_text = load_processed(column, description)
-    for doc in processed_text:
-        for word in doc:
-            model.similarity(key)
-            #math to combine all the words in a doc
-    # map back to categories/expanded rows
+    return docs
 
 
 def text_to_sentiment(df, column):
-    #vader sentiment analysis
+    # vader sentiment analysis
     pass
 
 
 def load_processed(column, description):
-    with open('models/tokenized_'+column+'_'+description, 'w') as f:
+    with open('models/tokenized_'+column+'_'+description) as f:
         temp_list = pickle.load(f)
     return temp_list
 
@@ -53,10 +45,10 @@ def process_text(df, column, description):
     for index, i in enumerate(df[column].cat.categories):
         temp_list.append(tokenize(i, spell=False, stem=False, lemma=True, lower=True, stop=True))
         pbar.update(index)
+    pbar.finish()
     with open('models/tokenized_'+column+'_'+description, 'w') as f:
         pickle.dump(temp_list, f)
-    print("Pre-token shape of {} and post-token shape of {}.".format(df[column].shape, len(temp_list)))
-    pbar.finish()
+    print("Pre-token shape of {} and post-token shape of {}.".format(len(df[column].cat.categories), len(temp_list)))
 
 
 def tokenize(text, spell=False, stem=False, lemma=True, lower=False, stop=False):
@@ -73,9 +65,9 @@ def tokenize(text, spell=False, stem=False, lemma=True, lower=False, stop=False)
     if stem:
         words = [stemmer.stem(w) for w in words]
     if stop:
-        tokens = [w for w in words if w.isalpha() and w not in stopwords]
+        tokens = [w.encode('utf-8') for w in words if w.isalpha() and w not in stopwords]
     else:
-        tokens = [w for w in words if w.isalpha()]
+        tokens = [w.encode('utf-8') for w in words if w.isalpha()]
     # letters_only = re.sub("[^a-zA-Z]", " ", text)
     return tokens
 
@@ -83,7 +75,7 @@ def tokenize(text, spell=False, stem=False, lemma=True, lower=False, stop=False)
 def split_into_lemmas(message):
     message = unicode(message, 'utf8').lower()
     words = TextBlob(message).words
-    # for each word, take its "base form" = lemma 
+    # for each word, take its "base form" = lemma
     return [word.lemma for word in words]
 
 
@@ -164,10 +156,7 @@ def main():
 
     feature_list = ['review_text']
     train_df = data_grab.get_selects('train', feature_list)
-    process_text(train_df, 'review_text', 'train_lemma')
-    del train_df
-    test_df = data_grab.get_selects('train', feature_list)
-    process_text(test_df, 'review_text', 'test_lemma')
+    process_text(train_df, 'review_text', 'lemma')
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))
