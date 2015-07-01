@@ -64,9 +64,9 @@ def train():
     # If you don't plan to train the model any further, calling init_sims will make the model much more memory-efficient.
     model.init_sims(replace=True)
 
-    model.save('models/word2vec_model')
+    model.save('pickle_jar/word2vec_model')
 
 
 def vectorized_docs():
-    model = word2vec.Word2Vec.load('models/word2vec_model')
+    model = word2vec.Word2Vec.load('pickle_jar/word2vec_model')
     model.fit()

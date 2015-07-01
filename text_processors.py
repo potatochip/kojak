@@ -18,7 +18,7 @@ stemmer = SnowballStemmer("english")
 
 def get_processed_text(df, column, description):
     # returns the processed text paired in a dictionary with its index category number
-    with open('models/tokenized_'+column+'_'+description) as f:
+    with open('pickle_jar/tokenized_'+column+'_'+description) as f:
         processed = pickle.load(f)
     codes = df[column].cat.codes
     docs = []
@@ -33,7 +33,7 @@ def text_to_sentiment(df, column):
 
 
 def load_processed(column, description):
-    with open('models/tokenized_'+column+'_'+description) as f:
+    with open('pickle_jar/tokenized_'+column+'_'+description) as f:
         temp_list = pickle.load(f)
     return temp_list
 
@@ -46,7 +46,7 @@ def process_text(df, column, description):
         temp_list.append(tokenize(i, spell=False, stem=False, lemma=True, lower=True, stop=True))
         pbar.update(index)
     pbar.finish()
-    with open('models/tokenized_'+column+'_'+description, 'w') as f:
+    with open('pickle_jar/tokenized_'+column+'_'+description, 'w') as f:
         pickle.dump(temp_list, f)
     print("Pre-token shape of {} and post-token shape of {}.".format(len(df[column].cat.categories), len(temp_list)))
 
@@ -80,67 +80,67 @@ def split_into_lemmas(message):
 
 
 def count_text(description='base', custom_vec=False):
-    with open('models/reviews_tips_original_text.pkl') as f:
+    with open('pickle_jar/reviews_tips_original_text.pkl') as f:
         original_text = pickle.load(f)
     if custom_vec:
         vec = CountVectorizer(analyzer=split_into_lemmas)
     else:
         vec = CountVectorizer(stop_words='english', max_df=0.9, min_df=2)
     vec = vec.fit(original_text)
-    joblib.dump(vec, 'models/count_vectorizer_'+description)
+    joblib.dump(vec, 'pickle_jar/count_vectorizer_'+description)
     print("vectorizing finished")
 
     # train_text = data_grab.load_df('training_df')
-    train_text = pd.read_pickle('models/training_df.pkl')
+    train_text = pd.read_pickle('pickle_jar/training_df.pkl')
     train_docs = vec.transform(train_text.review_text)
-    joblib.dump(train_docs, 'models/count_train_docs_'+description)
+    joblib.dump(train_docs, 'pickle_jar/count_train_docs_'+description)
     del train_text, train_docs
     print("train count matrix created")
 
     # test_text = data_grab.load_df('test_df')
-    test_text = pd.read_pickle('models/test_df.pkl')
+    test_text = pd.read_pickle('pickle_jar/test_df.pkl')
     test_docs = vec.transform(test_text.review_text)
-    joblib.dump(test_docs, 'models/count_test_docs_'+description)
+    joblib.dump(test_docs, 'pickle_jar/count_test_docs_'+description)
     print("test count matrix created")
 
 
 def tfidf_text(description='base', custom_vec=False):
     # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus? doing otherwise gives the reviews for restaurants that get inspected more frequently altered weight
-    with open('models/reviews_tips_original_text.pkl') as f:
+    with open('pickle_jar/reviews_tips_original_text.pkl') as f:
         original_text = pickle.load(f)
     if custom_vec:
         vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1, 3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0)
     else:
         vec = TfidfVectorizer(stop_words='english', max_df=0.9, min_df=2)
     vec = vec.fit(original_text)
-    joblib.dump(vec, 'models/tfidf_vectorizer_'+description)
+    joblib.dump(vec, 'pickle_jar/tfidf_vectorizer_'+description)
     print("vectorizing finished")
 
     train_text = data_grab.get_selects('train', [])
     train_docs = vec.transform(train_text.review_text)
-    joblib.dump(train_docs, 'models/tfidf_train_docs_'+description)
+    joblib.dump(train_docs, 'pickle_jar/tfidf_train_docs_'+description)
     del train_text, train_docs
     print("train tfidf matrix created")
 
     test_text = data_grab.get_selects('train', [])
     test_docs = vec.transform(test_text.review_text)
-    joblib.dump(test_docs, 'models/tfidf_test_docs_'+description)
+    joblib.dump(test_docs, 'pickle_jar/tfidf_test_docs_'+description)
     print("test tfidf matrix created")
 
 
 def load_tfidf_docs(frame='train', description='base'):
     if frame == 'train':
-        docs = joblib.load('models/tfidf_train_docs_'+description)
+        docs = joblib.load('pickle_jar/tfidf_train_docs_'+description)
     elif frame == 'test':
-        docs = joblib.load('models/tfidf_test_docs_'+description)
+        docs = joblib.load('pickle_jar/tfidf_test_docs_'+description)
     return ('review_tfidf', docs)
 
 
 def load_count_docs(frame='train', description='base'):
     if frame == 'train':
-        docs = joblib.load('models/count_train_docs_'+description)
+        docs = joblib.load('pickle_jar/count_train_docs_'+description)
     elif frame == 'test':
-        docs = joblib.load('models/count_test_docs_'+description)
+        docs = joblib.load('pickle_jar/count_test_docs_'+description)
     return ('review_bag_of_words', docs)
 
 

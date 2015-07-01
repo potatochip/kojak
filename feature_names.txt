@@ -25,6 +25,7 @@ user_votes_cool - int64
 user_votes_funny - int64
 user_votes_useful - int64
 user_yelping_since - datetime64[ns]
+restaurant_stars - float64
 restaurant_attributes_accepts_credit_cards - bool
 restaurant_attributes_ages_allowed - category
 restaurant_attributes_alcohol - category
@@ -91,9 +92,9 @@ restaurant_hours_wednesday_open - category
 restaurant_latitude - float64
 restaurant_longitude - float64
 restaurant_name - category
-restaurant_open - bool
-restaurant_review_count - int64
-restaurant_stars - float64
+restaurant_open - object
+restaurant_review_count - float64
+checkin_counts - float64
 review_year - int64
 review_month - int64
 review_day - int64
@@ -106,7 +107,6 @@ restaurant_music - category
 restaurant_parking - category
 restaurant_street - category
 restaurant_zipcode - category
-checkin_counts - float64
 inspection_id - int64
 inspection_date - datetime64[ns]
 score_lvl_1 - int64

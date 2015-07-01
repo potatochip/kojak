@@ -9,3 +9,4 @@ sftp-config.json
 sendMessage.py
 sendMessage.pyc
 visuals/
+pickle_jar/

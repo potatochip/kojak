@@ -44,10 +44,13 @@ logger = logging.getLogger(__name__)
 
 if socket.gethostname() == 'ip-172-31-9-131':
     print('WORKING FULL BLAST')
-    n_jobs = -1  # -1 for full blast when not using computer
+    n_jobs = -1  # -1 for full blast when on aws
+elif socket.gethostname() == 'trashcan.deathstar.private':
+    print('BOOM!!!')
+    n_jobs = -1
 else:
     print('WORKING SLOW AS SHIT')
-    n_jobs = 1  # since not working on macbook air presently
+    n_jobs = 1  # since this funciton is not working on macbook air presently
 
 
 def logPrint(message):

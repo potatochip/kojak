@@ -43,7 +43,7 @@ def get_tips():
         for line in f:
             data.append(byteify(json.loads(line)))
     tips = json_normalize(data)
-    # renaming tip likes to what would be equivalent in reviews
+    # renaming tip.likes to what would be equivalent in reviews
     tips = tips.rename(columns={'likes': 'votes.useful'})
     return tips
 
@@ -57,7 +57,7 @@ def get_users():
     users.columns = ['user_average_stars', 'user_compliments_cool', 'user_compliments_cute', 'user_compliments_funny', 'user_compliments_hot', 'user_compliments_list', 'user_compliments_more', 'user_compliments_note', 'user_compliments_photos', 'user_compliments_plain', 'user_compliments_profile', 'user_compliments_writer', 'user_elite', 'user_fans', 'user_friends', 'user_name', 'user_review_count', 'user_type', 'user_id', 'user_votes_cool', 'user_votes_funny', 'user_votes_useful', 'user_yelping_since']
 
     # save user info for networkX
-    users.to_pickle('models/user_info.pkl')
+    users.to_pickle('pickle_jar/user_info.pkl')
 
     return users
 
@@ -80,7 +80,14 @@ def get_restaurants():
     restaurants.drop('attributes.Good For Kids', axis=1, inplace=True)
     restaurants['attributes.Good for Kids'] = new_kids_on_the_block
     restaurants.columns = ['restaurant_attributes_accepts_credit_cards', 'restaurant_attributes_ages_allowed', 'restaurant_attributes_alcohol', 'restaurant_attributes_ambience_casual', 'restaurant_attributes_ambience_classy', 'restaurant_attributes_ambience_divey', 'restaurant_attributes_ambience_hipster', 'restaurant_attributes_ambience_intimate', 'restaurant_attributes_ambience_romantic', 'restaurant_attributes_ambience_touristy', 'restaurant_attributes_ambience_trendy', 'restaurant_attributes_ambience_upscale', 'restaurant_attributes_attire', 'restaurant_attributes_byob', 'restaurant_attributes_byob-corkage', 'restaurant_attributes_by_appointment_only', 'restaurant_attributes_caters', 'restaurant_attributes_coat_check', 'restaurant_attributes_corkage', 'restaurant_attributes_delivery', 'restaurant_attributes_dietary_restrictions_dairy-free', 'restaurant_attributes_dietary_restrictions_gluten-free', 'restaurant_attributes_dietary_restrictions_halal', 'restaurant_attributes_dietary_restrictions_kosher', 'restaurant_attributes_dietary_restrictions_soy-free', 'restaurant_attributes_dietary_restrictions_vegan', 'restaurant_attributes_dietary_restrictions_vegetarian', 'restaurant_attributes_dogs_allowed', 'restaurant_attributes_drive-thr', 'restaurant_attributes_good_for_dancing', 'restaurant_attributes_good_for_groups', 'restaurant_attributes_good_for_breakfast', 'restaurant_attributes_good_for_brunch', 'restaurant_attributes_good_for_dessert', 'restaurant_attributes_good_for_dinner', 'restaurant_attributes_good_for_latenight', 'restaurant_attributes_good_for_lunch', 'restaurant_attributes_good_for_kids', 'restaurant_attributes_happy_hour', 'restaurant_attributes_has_tv', 'restaurant_attributes_music_background_music', 'restaurant_attributes_music_dj', 'restaurant_attributes_music_jukebox', 'restaurant_attributes_music_karaoke', 'restaurant_attributes_music_live', 'restaurant_attributes_music_video', 'restaurant_attributes_noise_level', 'restaurant_attributes_open_24_hours', 'restaurant_attributes_order_at_counter', 'restaurant_attributes_outdoor_seating', 'restaurant_attributes_parking_garage', 'restaurant_attributes_parking_lot', 'restaurant_attributes_parking_street', 'restaurant_attributes_parking_valet', 'restaurant_attributes_parking_validated', 'restaurant_attributes_payment_types_amex', 'restaurant_attributes_payment_types_cash_only', 'restaurant_attributes_payment_types_discover', 'restaurant_attributes_payment_types_mastercard', 'restaurant_attributes_payment_types_visa', 'restaurant_attributes_price_range', 'restaurant_attributes_smoking', 'restaurant_attributes_take-out', 'restaurant_attributes_takes_reservations', 'restaurant_attributes_waiter_service', 'restaurant_attributes_wheelchair_accessible', 'restaurant_attributes_wi-fi', 'restaurant_id', 'restaurant_categories', 'restaurant_city', 'restaurant_full_address', 'restaurant_hours_friday_close', 'restaurant_hours_friday_open', 'restaurant_hours_monday_close', 'restaurant_hours_monday_open', 'restaurant_hours_saturday_close', 'restaurant_hours_saturday_open', 'restaurant_hours_sunday_close', 'restaurant_hours_sunday_open', 'restaurant_hours_thursday_close', 'restaurant_hours_thursday_open', 'restaurant_hours_tuesday_close', 'restaurant_hours_tuesday_open', 'restaurant_hours_wednesday_close', 'restaurant_hours_wednesday_open', 'restaurant_latitude', 'restaurant_longitude', 'restaurant_name', 'restaurant_neighborhoods', 'restaurant_open', 'restaurant_review_count', 'restaurant_stars', 'restaurant_state', 'restaurant_type']
-    return restaurants
+
+    # map to boston inspection ids. yelp has multiple ids referring to the same boston id. condencing multiples into a single row combinging the rows that have the most information
+    restaurants = map_ids(restaurants)
+    stars = restaurants.groupby('restaurant_id')['restaurant_stars'].median()
+    therest = restaurants.drop('restaurant_stars', axis=1).groupby('restaurant_id').max()
+    final = pd.concat([stars, therest], axis=1).reset_index()
+
+    return final
 
 
 def get_checkins():
@@ -92,19 +99,53 @@ def get_checkins():
     # above returns like 200 columns of checkin_info
     checkins = pd.DataFrame(data)
     checkins.columns = ['restaurant_id', 'checkin_info', 'checkin_type']
+
+    # sum the checkin values
+    print('sum the check in values')
+    checkins['checkin_counts'] = checkins['checkin_info'].apply(lambda x: np.nan if pd.isnull(x) else sum(x.values()))
+    checkins.drop('checkin_info', axis=1, inplace=True)
+
+    # map to boston inspection ids. yelp has multiple ids referring to the same boston id. concening multiples into a single row with the sum count of the number of checkins
+    checkins = map_ids(checkins)
+    checkins = checkins.groupby('restaurant_id').sum().reset_index()
+
     return checkins
+
+
+def map_ids(df):
+    id_map = pd.read_csv("data/restaurant_ids_to_yelp_ids.csv")
+    id_dict = {}
+    # each Yelp ID may correspond to up to 4 Boston IDs
+    for i, row in id_map.iterrows():
+        # get the Boston ID
+        boston_id = row["restaurant_id"]
+        # get the non-null Yelp IDs
+        non_null_mask = ~pd.isnull(row.ix[1:])
+        yelp_ids = row[1:][non_null_mask].values
+        for yelp_id in yelp_ids:
+            id_dict[yelp_id] = boston_id
+    # replace yelp business_id with boston restaurant_id
+    map_to_boston_ids = lambda yelp_id: id_dict[yelp_id] if yelp_id in id_dict else np.nan
+
+    print("shape before mapping ids: {}".format(df.shape))
+    df.restaurant_id = df.restaurant_id.map(map_to_boston_ids)
+    print("shape after mapping ids: {}".format(df.shape))
+    return df
 
 
 def get_full_features():
     reviews = get_reviews()
     tips = get_tips()
 
-    # some nan's will exist where reviews columns and tips columns don't match up
     reviews_tips = reviews.append(tips)
     reviews_tips.columns = ['restaurant_id', 'review_date', 'review_id', 'review_stars', 'review_text', 'review_type', 'user_id', 'review_votes_cool', 'review_votes_funny', 'review_votes_useful']
+    reviews_tips.review_votes_useful.fillna(0, inplace=True)
+    reviews_tips.review_votes_cool.fillna(0, inplace=True)
+    reviews_tips.review_votes_funny.fillna(0, inplace=True)
+    reviews_tips = map_ids(reviews_tips)
 
     # # saving this for tfidf vectorizer training later
-    # with open('models/reviews_tips_original_text.pkl', 'w') as f:
+    # with open('pickle_jar/reviews_tips_original_text.pkl', 'w') as f:
     #     pickle.dump(reviews_tips.review_text.tolist(), f)
 
     users = get_users()
@@ -117,56 +158,10 @@ def get_full_features():
     checkins = get_checkins()
     full_features = pd.merge(restaurants_users_reviews_tips, checkins, how='left', on='restaurant_id')
 
-    id_map = pd.read_csv("data/restaurant_ids_to_yelp_ids.csv")
-    id_dict = {}
-    # each Yelp ID may correspond to up to 4 Boston IDs
-    for i, row in id_map.iterrows():
-        # get the Boston ID
-        boston_id = row["restaurant_id"]
-        # get the non-null Yelp IDs
-        non_null_mask = ~pd.isnull(row.ix[1:])
-        yelp_ids = row[1:][non_null_mask].values
-        for yelp_id in yelp_ids:
-            id_dict[yelp_id] = boston_id
-
-    # replace yelp business_id with boston restaurant_id
-    map_to_boston_ids = lambda yelp_id: id_dict[yelp_id] if yelp_id in id_dict else np.nan
-    full_features.restaurant_id = full_features.restaurant_id.map(map_to_boston_ids)
-
     # drop restaurants not found in boston data
     full_features = full_features[pd.notnull(full_features.restaurant_id)]
 
     return full_features
-
-
-def flatten_reviews(label_df, reviews):
-    """
-        label_df: inspection dataframe with date, restaurant_id
-        reviews: dataframe of reviews
-        Returns all of the text of reviews previous to each
-        inspection listed in label_df.
-    """
-    reviews_dictionary = {}
-    N = len(label_df)
-
-    for i, (pid, row) in enumerate(label_df.iterrows()):
-        # we want to only get reviews for this restaurant that ocurred before the inspection
-        pre_inspection_mask = (reviews.date < row.date) & (reviews.restaurant_id == row.restaurant_id)
-
-        # pre-inspection reviews
-        pre_inspection_reviews = reviews[pre_inspection_mask]
-
-        # join the text
-        all_text = ' '.join(pre_inspection_reviews.text)
-
-        # store in dictionary
-        reviews_dictionary[pid] = all_text
-
-        if i % 2500 == 0:
-            print '{} out of {}'.format(i, N)
-
-    # return series in same order as the original data frame
-    return pd.Series(reviews_dictionary)[label_df.index]
 
 
 def transform_features(df):
@@ -183,7 +178,6 @@ def transform_features(df):
     # df.drop('user_name', axis=1, inplace=True)
     df.drop('user_type', axis=1, inplace=True)
     df.drop('restaurant_state', axis=1, inplace=True)
-    df.drop('checkin_type', axis=1, inplace=True)
     df.drop('user_friends', axis=1, inplace=True)
 
     # expand review_date and inspection_date into parts of year. could probably just get by with month or dayofyear
@@ -302,11 +296,6 @@ def transform_features(df):
     df['restaurant_zipcode'] = df['restaurant_full_address'].apply(lambda x: re.search('\d+$', x).group() if re.search('\d+$', x) is not None else np.nan)
     # df.drop('restaurant_full_address', axis=1, inplace=True)
 
-    # sum the checkin values
-    print('sum the check in values')
-    df['checkin_counts'] = df['checkin_info'].apply(lambda x: np.nan if pd.isnull(x) else sum(x.values()))
-    df.drop('checkin_info', axis=1, inplace=True)
-
     # force text to non-unicode
     print('force text to non-unicode')
     df['review_text'] = df['review_text'].apply(lambda x: unicodedata.normalize('NFKD', x) if type(x) != str else x)
@@ -328,7 +317,8 @@ def make_feature_response(feature_df, response_df):
 
 
 def easy_bools(df, column):
-    df[column] = df[column].astype('bool')
+    # converts nans to false
+    df[column] = df[column].fillna(False).astype('bool')
     return df
 
 
@@ -368,6 +358,7 @@ def make_categoricals(train_df, test_df):
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_name')
     train_df, test_df = easy_categories(train_df, test_df, column='user_id')
     train_df, test_df = easy_categories(train_df, test_df, column='user_name')
+    # i commented the below out at some point... why was that?
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_id')
 
     # make review_text categorical to make it easier to work with
@@ -422,24 +413,24 @@ def make_categoricals(train_df, test_df):
     return train_df, test_df
 
 
-def make_flat():
+def make_flat_version(df):
     '''
-    same number of rows and observations as response dataframe.
-    reviews flattened and duplicate restaurants with changed name taken care of.
+    combining all the reviews for each restaurant/inspection into a single text. will have the same number of rows as the original response. this way we can avoid hierarchical models and test whether it makes a difference
     '''
-    training_response = pd.read_csv("data/train_labels.csv", index_col=None)
-    training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
-    submission_response = pd.read_csv("data/SubmissionFormat.csv", index_col=None)
-    submission_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
-
-    reviews = get_reviews()
-    tips = get_tips()
-    reviews_tips = reviews.append(tips)
-    reviews_tips.columns = ['restaurant_id', 'review_date', 'review_id', 'review_stars', 'review_text', 'review_type', 'user_id', 'review_votes_cool', 'review_votes_funny', 'review_votes_useful']
-
+    # groupby restaurant_id and inspection_date
+    g = df[['restaurant_id', 'inspection_date', 'review_text', 'review_date']].groupby(['restaurant_id', 'inspection_date'])
+    # remove the reviews that occur after the inspection date and combine reviews for the same restaurant/date
+    texts = g.apply(lambda x: ' '.join(x[x.review_date <= x.inspection_date]['review_text']))
+    # remove duplicates
+    no_dupes = df.drop_duplicates(['restaurant_id', 'inspection_date'])
+    no_dupes.set_index(['restaurant_id', 'inspection_date'], inplace=True)
+    no_dupes.review_text = texts
+    print("New shape of {}".format(no_dupes.shape))
+    return no_dupes
 
 
 def make_train_test():
+    # creates hierarchical dataframe with all of the reviews ever given to a restaruant duplicated for every inspection date for a restaurant
     full_features = get_full_features()
 
     # transform features
@@ -476,17 +467,26 @@ def make_train_test():
 
     print('finished transformations')
 
-    # # save dataframes
-    training_df.to_pickle('models/training_df.pkl')
-    test_df.to_pickle('models/test_df.pkl')
+    # save dataframes
+    training_df.to_pickle('pickle_jar/training_df.pkl')
+    test_df.to_pickle('pickle_jar/test_df.pkl')
     print('both dataframes pickled')
+
+    # make flat dataframes and save them
+    print('making flat dataframes')
+    print("Response shape of {}".format(training_response.shape))
+    print("Submission shape of {}".format(submission.shape))
+    flat_train = make_flat_version(training_df)
+    flat_test = make_flat_version(test_df)
+    flat_train.to_pickle('pickle_jar/flat_train_df.pkl')
+    flat_test.to_pickle('pickle_jar/flat_test_df.pkl')
 
     # save column/feature names since they have grown out of hand
     choices_choices = [str(j)+' - '+str(k) for j, k in zip(training_df.dtypes.index, training_df.dtypes)]
     with open('feature_names.txt', 'w') as f:
         f.write('\n'.join(choices_choices))
 
-    # store = pd.HDFStore('models/df_store.h5')
+    # store = pd.HDFStore('pickle_jar/df_store.h5')
     # store.append('training_df', training_df, data_columns=True, dropna=False)
     # print('training_df in hdfstore')
     # store.append('test_df', test_df, data_columns=True, dropna=False)
@@ -495,7 +495,7 @@ def make_train_test():
 
 def get_selects(frame, features=None):
     if frame == 'train':
-        df = pd.read_pickle('models/training_df.pkl')
+        df = pd.read_pickle('pickle_jar/training_df.pkl')
         if features:
             features = features[:]
             features.extend(['score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
@@ -503,7 +503,7 @@ def get_selects(frame, features=None):
         else:
             return df
     elif frame == 'test':
-        df = pd.read_pickle('models/test_df.pkl')
+        df = pd.read_pickle('pickle_jar/test_df.pkl')
         if features:
             features = features[:]
             features.extend(['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
@@ -513,8 +513,8 @@ def get_selects(frame, features=None):
 
 
 def test():
-    df = pd.read_pickle('models/test_df.pkl')
-    store = pd.HDFStore('models/df_store.h5')
+    df = pd.read_pickle('pickle_jar/test_df.pkl')
+    store = pd.HDFStore('pickle_jar/df_store.h5')
     store.append('test_df', df, dropna=False, data_columns=['restaurant_id', 'restaurant_full_address', 'review_text', 'user_id'])
     store.close()
 
@@ -523,6 +523,12 @@ def load_dataframes(features=None):
     train_df = get_selects('train', features)
     test_df = get_selects('test', features)
     return train_df, test_df
+
+
+def get_flats():
+    train = pd.read_pickle('pickle_jar/flat_train_df.pkl')
+    test = pd.read_pickle('pickle_jar/flat_test_df.pkl')
+    return train, test
 
 
 def main():
