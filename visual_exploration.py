@@ -1,7 +1,7 @@
 import data_grab
 import sendMessage
 import matplotlib
-matplotlib.use('Agg') 
+matplotlib.use('Agg')
 
 
 import pandas as pd
@@ -13,6 +13,7 @@ plt.rcParams["figure.figsize"] = (10, 8)
 
 
 def distributions(variable, filename):
+    '''for visualizing the distribution of a dataset'''
     # better with bins=50 for the y.hist
     variable.hist(bins=100)
     plt.savefig('visuals/'+filename)
@@ -24,8 +25,8 @@ def interactions(X, y, description):
     for i in X.iteritems():
         feature_title = i[0]
         plt.plot(i[1], y, '.', alpha=.4)
-        plt.savefig('visuals/interact_'+feature_title+'_'+description)
-        print('visuals/interact_'+feature_title+'_'+description)
+        plt.savefig('visuals/'+feature_title+'_'+description+'_interact')
+        print('visuals/'+feature_title+'_'+description+'_interact')
         plt.close()
 
 
@@ -38,8 +39,8 @@ def coefficients(X, y, y_formula):
     g = sns.coefplot(formula, data, intercept=True)
     g.set_xticklabels(rotation=90)
     plt.tight_layout()
-    plt.savefig('visuals/coefficient_'+X_title+'_'+y_formula)
-    print('visuals/coefficient_'+X_title+'_'+y_formula)
+    plt.savefig('visuals/'X_title+'_'+y_formula+'_coefficient')
+    print('visuals/'X_title+'_'+y_formula+'_coefficient')
     plt.close()
 
 
@@ -50,8 +51,8 @@ def correlations(data, X):
                               "#FFE6F8", "#C71585", "#8B0000"], as_cmap=True)
     sns.corrplot(data, annot=False, diag_names=False, cmap=cmap)
     ax.grid(False)
-    plt.savefig('visuals/correlation_'+X_title)
-    print('visuals/correlation_'+X_title)
+    plt.savefig('visuals/'+X_title+'_correlation')
+    print('visuals/'+X_title+'_correlation')
     plt.close()
 
 
@@ -60,11 +61,12 @@ def response_histograms(data):
 
 
 def strip(X, y, description):
+    '''for visualizing categorical data'''
     for i in X.iteritems():
         feature_title = i[0]
         sns.stripplot(x=i[1], y=y, jitter=True)
-        plt.savefig('visuals/strips_'+feature_title+'_'+description)
-        print('visuals/correlation_'+feature_title+'_'+description)
+        plt.savefig('visuals/'+feature_title+'_'+description+'_strips')
+        print('visuals/'+feature_title+'_'+description+'_strips')
         plt.close()
 
 
@@ -80,7 +82,7 @@ def make_plots(X, y, description):
     response_histograms(data.join(transformed_y))
 
     # features histograms
-    distributions(X, 'histograms_combined_'+description)
+    distributions(X, description+'_combined_histograms')
 
     # histograms and interaction plots for each feature
     interactions(X, transformed_y, 'transformed_y')
@@ -102,3 +104,14 @@ def make_plots(X, y, description):
 
     # feature correlation plot
     correlations(data, X)
+
+
+def main():
+    train, test = data_grab.get_flats()
+    feature_list = []
+    X = train[feature_list]
+    correlations(train, X)
+
+
+if __name__ == '__main__':
+    main()

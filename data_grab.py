@@ -79,7 +79,24 @@ def get_restaurants():
             new_kids_on_the_block.append(val)
     restaurants.drop('attributes.Good For Kids', axis=1, inplace=True)
     restaurants['attributes.Good for Kids'] = new_kids_on_the_block
-    restaurants.columns = ['restaurant_attributes_accepts_credit_cards', 'restaurant_attributes_ages_allowed', 'restaurant_attributes_alcohol', 'restaurant_attributes_ambience_casual', 'restaurant_attributes_ambience_classy', 'restaurant_attributes_ambience_divey', 'restaurant_attributes_ambience_hipster', 'restaurant_attributes_ambience_intimate', 'restaurant_attributes_ambience_romantic', 'restaurant_attributes_ambience_touristy', 'restaurant_attributes_ambience_trendy', 'restaurant_attributes_ambience_upscale', 'restaurant_attributes_attire', 'restaurant_attributes_byob', 'restaurant_attributes_byob-corkage', 'restaurant_attributes_by_appointment_only', 'restaurant_attributes_caters', 'restaurant_attributes_coat_check', 'restaurant_attributes_corkage', 'restaurant_attributes_delivery', 'restaurant_attributes_dietary_restrictions_dairy-free', 'restaurant_attributes_dietary_restrictions_gluten-free', 'restaurant_attributes_dietary_restrictions_halal', 'restaurant_attributes_dietary_restrictions_kosher', 'restaurant_attributes_dietary_restrictions_soy-free', 'restaurant_attributes_dietary_restrictions_vegan', 'restaurant_attributes_dietary_restrictions_vegetarian', 'restaurant_attributes_dogs_allowed', 'restaurant_attributes_drive-thr', 'restaurant_attributes_good_for_dancing', 'restaurant_attributes_good_for_groups', 'restaurant_attributes_good_for_breakfast', 'restaurant_attributes_good_for_brunch', 'restaurant_attributes_good_for_dessert', 'restaurant_attributes_good_for_dinner', 'restaurant_attributes_good_for_latenight', 'restaurant_attributes_good_for_lunch', 'restaurant_attributes_good_for_kids', 'restaurant_attributes_happy_hour', 'restaurant_attributes_has_tv', 'restaurant_attributes_music_background_music', 'restaurant_attributes_music_dj', 'restaurant_attributes_music_jukebox', 'restaurant_attributes_music_karaoke', 'restaurant_attributes_music_live', 'restaurant_attributes_music_video', 'restaurant_attributes_noise_level', 'restaurant_attributes_open_24_hours', 'restaurant_attributes_order_at_counter', 'restaurant_attributes_outdoor_seating', 'restaurant_attributes_parking_garage', 'restaurant_attributes_parking_lot', 'restaurant_attributes_parking_street', 'restaurant_attributes_parking_valet', 'restaurant_attributes_parking_validated', 'restaurant_attributes_payment_types_amex', 'restaurant_attributes_payment_types_cash_only', 'restaurant_attributes_payment_types_discover', 'restaurant_attributes_payment_types_mastercard', 'restaurant_attributes_payment_types_visa', 'restaurant_attributes_price_range', 'restaurant_attributes_smoking', 'restaurant_attributes_take-out', 'restaurant_attributes_takes_reservations', 'restaurant_attributes_waiter_service', 'restaurant_attributes_wheelchair_accessible', 'restaurant_attributes_wi-fi', 'restaurant_id', 'restaurant_categories', 'restaurant_city', 'restaurant_full_address', 'restaurant_hours_friday_close', 'restaurant_hours_friday_open', 'restaurant_hours_monday_close', 'restaurant_hours_monday_open', 'restaurant_hours_saturday_close', 'restaurant_hours_saturday_open', 'restaurant_hours_sunday_close', 'restaurant_hours_sunday_open', 'restaurant_hours_thursday_close', 'restaurant_hours_thursday_open', 'restaurant_hours_tuesday_close', 'restaurant_hours_tuesday_open', 'restaurant_hours_wednesday_close', 'restaurant_hours_wednesday_open', 'restaurant_latitude', 'restaurant_longitude', 'restaurant_name', 'restaurant_neighborhoods', 'restaurant_open', 'restaurant_review_count', 'restaurant_stars', 'restaurant_state', 'restaurant_type']
+    restaurants.columns = ['restaurant_attributes_accepts_credit_cards', 'restaurant_attributes_ages_allowed', 'restaurant_attributes_alcohol', 'restaurant_attributes_ambience_casual', 'restaurant_attributes_ambience_classy', 'restaurant_attributes_ambience_divey', 'restaurant_attributes_ambience_hipster', 'restaurant_attributes_ambience_intimate', 'restaurant_attributes_ambience_romantic', 'restaurant_attributes_ambience_touristy', 'restaurant_attributes_ambience_trendy', 'restaurant_attributes_ambience_upscale', 'restaurant_attributes_attire', 'restaurant_attributes_byob', 'restaurant_attributes_byob_corkage', 'restaurant_attributes_by_appointment_only', 'restaurant_attributes_caters', 'restaurant_attributes_coat_check', 'restaurant_attributes_corkage', 'restaurant_attributes_delivery', 'restaurant_attributes_dietary_restrictions_dairy_free', 'restaurant_attributes_dietary_restrictions_gluten_free', 'restaurant_attributes_dietary_restrictions_halal', 'restaurant_attributes_dietary_restrictions_kosher', 'restaurant_attributes_dietary_restrictions_soy_free', 'restaurant_attributes_dietary_restrictions_vegan', 'restaurant_attributes_dietary_restrictions_vegetarian', 'restaurant_attributes_dogs_allowed', 'restaurant_attributes_drive_thr', 'restaurant_attributes_good_for_dancing', 'restaurant_attributes_good_for_groups', 'restaurant_attributes_good_for_breakfast', 'restaurant_attributes_good_for_brunch', 'restaurant_attributes_good_for_dessert', 'restaurant_attributes_good_for_dinner', 'restaurant_attributes_good_for_latenight', 'restaurant_attributes_good_for_lunch', 'restaurant_attributes_good_for_kids', 'restaurant_attributes_happy_hour', 'restaurant_attributes_has_tv', 'restaurant_attributes_music_background_music', 'restaurant_attributes_music_dj', 'restaurant_attributes_music_jukebox', 'restaurant_attributes_music_karaoke', 'restaurant_attributes_music_live', 'restaurant_attributes_music_video', 'restaurant_attributes_noise_level', 'restaurant_attributes_open_24_hours', 'restaurant_attributes_order_at_counter', 'restaurant_attributes_outdoor_seating', 'restaurant_attributes_parking_garage', 'restaurant_attributes_parking_lot', 'restaurant_attributes_parking_street', 'restaurant_attributes_parking_valet', 'restaurant_attributes_parking_validated', 'restaurant_attributes_payment_types_amex', 'restaurant_attributes_payment_types_cash_only', 'restaurant_attributes_payment_types_discover', 'restaurant_attributes_payment_types_mastercard', 'restaurant_attributes_payment_types_visa', 'restaurant_attributes_price_range', 'restaurant_attributes_smoking', 'restaurant_attributes_take_out', 'restaurant_attributes_takes_reservations', 'restaurant_attributes_waiter_service', 'restaurant_attributes_wheelchair_accessible', 'restaurant_attributes_wifi', 'restaurant_id', 'restaurant_categories', 'restaurant_city', 'restaurant_full_address', 'restaurant_hours_friday_close', 'restaurant_hours_friday_open', 'restaurant_hours_monday_close', 'restaurant_hours_monday_open', 'restaurant_hours_saturday_close', 'restaurant_hours_saturday_open', 'restaurant_hours_sunday_close', 'restaurant_hours_sunday_open', 'restaurant_hours_thursday_close', 'restaurant_hours_thursday_open', 'restaurant_hours_tuesday_close', 'restaurant_hours_tuesday_open', 'restaurant_hours_wednesday_close', 'restaurant_hours_wednesday_open', 'restaurant_latitude', 'restaurant_longitude', 'restaurant_name', 'restaurant_neighborhoods', 'restaurant_open', 'restaurant_review_count', 'restaurant_stars', 'restaurant_state', 'restaurant_type']
+
+    # convert opening and closing hours to float representation. will take forever if done after everything is multiplied
+    openclose = lambda x: pd.to_datetime(x).hour + pd.to_datetime(x).minute/60.
+    restaurants['restaurant_hours_friday_close'] = restaurants['restaurant_hours_friday_close'].apply(openclose)
+    restaurants['restaurant_hours_friday_open'] = restaurants['restaurant_hours_friday_open'].apply(openclose)
+    restaurants['restaurant_hours_monday_close'] = restaurants['restaurant_hours_monday_close'].apply(openclose)
+    restaurants['restaurant_hours_monday_open'] = restaurants['restaurant_hours_monday_open'].apply(openclose)
+    restaurants['restaurant_hours_saturday_close'] = restaurants['restaurant_hours_saturday_close'].apply(openclose)
+    restaurants['restaurant_hours_saturday_open'] = restaurants['restaurant_hours_saturday_open'].apply(openclose)
+    restaurants['restaurant_hours_sunday_close'] = restaurants['restaurant_hours_sunday_close'].apply(openclose)
+    restaurants['restaurant_hours_sunday_open'] = restaurants['restaurant_hours_sunday_open'].apply(openclose)
+    restaurants['restaurant_hours_thursday_close'] = restaurants['restaurant_hours_thursday_close'].apply(openclose)
+    restaurants['restaurant_hours_thursday_open'] = restaurants['restaurant_hours_thursday_open'].apply(openclose)
+    restaurants['restaurant_hours_tuesday_close'] = restaurants['restaurant_hours_tuesday_close'].apply(openclose)
+    restaurants['restaurant_hours_tuesday_open'] = restaurants['restaurant_hours_tuesday_open'].apply(openclose)
+    restaurants['restaurant_hours_wednesday_close'] = restaurants['restaurant_hours_wednesday_close'].apply(openclose)
+    restaurants['restaurant_hours_wednesday_open'] = restaurants['restaurant_hours_wednesday_open'].apply(openclose)
 
     # map to boston inspection ids. yelp has multiple ids referring to the same boston id. condencing multiples into a single row combinging the rows that have the most information
     restaurants = map_ids(restaurants)
@@ -180,6 +197,7 @@ def transform_features(df):
     df.drop('restaurant_state', axis=1, inplace=True)
     df.drop('user_friends', axis=1, inplace=True)
 
+    print('converting time-related features')
     # expand review_date and inspection_date into parts of year. could probably just get by with month or dayofyear
     df.review_date = pd.to_datetime(pd.Series(df.review_date))
     df['review_year'] = df['review_date'].dt.year
@@ -205,15 +223,15 @@ def transform_features(df):
     df = easy_bools(df, 'restaurant_attributes_coat_check')
     df = easy_bools(df, 'restaurant_attributes_corkage')
     df = easy_bools(df, 'restaurant_attributes_delivery')
-    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_dairy-free')
-    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_gluten-free')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_dairy_free')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_gluten_free')
     df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_halal')
     df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_kosher')
-    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_soy-free')
+    df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_soy_free')
     df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_vegan')
     df = easy_bools(df, 'restaurant_attributes_dietary_restrictions_vegetarian')
     df = easy_bools(df, 'restaurant_attributes_dogs_allowed')
-    df = easy_bools(df, 'restaurant_attributes_drive-thr')
+    df = easy_bools(df, 'restaurant_attributes_drive_thr')
     df = easy_bools(df, 'restaurant_attributes_good_for_dancing')
     df = easy_bools(df, 'restaurant_attributes_good_for_groups')
     df = easy_bools(df, 'restaurant_attributes_good_for_breakfast')
@@ -233,7 +251,7 @@ def transform_features(df):
     df = easy_bools(df, 'restaurant_attributes_payment_types_discover')
     df = easy_bools(df, 'restaurant_attributes_payment_types_mastercard')
     df = easy_bools(df, 'restaurant_attributes_payment_types_visa')
-    df = easy_bools(df, 'restaurant_attributes_take-out')
+    df = easy_bools(df, 'restaurant_attributes_take_out')
     df = easy_bools(df, 'restaurant_attributes_takes_reservations')
     df = easy_bools(df, 'restaurant_attributes_waiter_service')
     df = easy_bools(df, 'restaurant_attributes_wheelchair_accessible')
@@ -336,25 +354,11 @@ def make_categoricals(train_df, test_df):
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_alcohol')
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_attire')
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_byob')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_byob-corkage')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_byob_corkage')
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_noise_level')
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_smoking')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_wi-fi')
+    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_attributes_wifi')
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_city')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_friday_close')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_friday_open')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_monday_close')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_monday_open')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_saturday_close')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_saturday_open')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_sunday_close')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_sunday_open')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_thursday_close')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_thursday_open')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_tuesday_close')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_tuesday_open')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_wednesday_close')
-    train_df, test_df = easy_categories(train_df, test_df, column='restaurant_hours_wednesday_open')
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_name')
     train_df, test_df = easy_categories(train_df, test_df, column='user_id')
     train_df, test_df = easy_categories(train_df, test_df, column='user_name')
@@ -425,9 +429,27 @@ def make_flat_version(df):
     no_dupes = df.drop_duplicates(['restaurant_id', 'inspection_date'])
     no_dupes.set_index(['restaurant_id', 'inspection_date'], inplace=True)
     no_dupes.review_text = texts
+    no_dupes.reset_index(inplace=True)
     print("New shape of {}".format(no_dupes.shape))
     return no_dupes
 
+
+def post_transformations(df):
+    '''transformations that need to occur after everything else is finished. usually after combined with response
+    '''
+
+    # create number representing days passed between inspection date and review date
+    df['time_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
+
+    # transform inspection date
+    df['inspection_year'] = df['inspection_date'].dt.year
+    df['inspection_month'] = df['inspection_date'].dt.month
+    df['inspection_day'] = df['inspection_date'].dt.day
+    df['inspection_dayofweek'] = df['inspection_date'].dt.dayofweek
+    df['inspection_quarter'] = df['inspection_date'].dt.quarter
+    df['inspection_dayofyear'] = df['inspection_date'].dt.dayofyear
+
+    return df
 
 def make_train_test():
     # creates hierarchical dataframe with all of the reviews ever given to a restaruant duplicated for every inspection date for a restaurant
@@ -437,33 +459,20 @@ def make_train_test():
     print('transforming features')
     transformed_features = transform_features(full_features)
 
+    # get response
     training_response = pd.read_csv("data/train_labels.csv", index_col=None)
     training_response.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
     submission = pd.read_csv("data/SubmissionFormat.csv", index_col=None)
     submission.columns = ['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']
+
     # combine features and response
     training_df = make_feature_response(transformed_features, training_response)
     test_df = make_feature_response(transformed_features, submission)
 
     training_df, test_df = make_categoricals(training_df, test_df)
 
-    # create number representing days passed between inspection date and review date
-    training_df['time_delta'] = (training_df.inspection_date - training_df.review_date).astype('timedelta64[D]')
-    test_df['time_delta'] = (test_df.inspection_date - test_df.review_date).astype('timedelta64[D]')
-
-    # transform inspection date
-    training_df['inspection_year'] = training_df['inspection_date'].dt.year
-    training_df['inspection_month'] = training_df['inspection_date'].dt.month
-    training_df['inspection_day'] = training_df['inspection_date'].dt.day
-    training_df['inspection_dayofweek'] = training_df['inspection_date'].dt.dayofweek
-    training_df['inspection_quarter'] = training_df['inspection_date'].dt.quarter
-    training_df['inspection_dayofyear'] = training_df['inspection_date'].dt.dayofyear
-    test_df['inspection_year'] = test_df['inspection_date'].dt.year
-    test_df['inspection_month'] = test_df['inspection_date'].dt.month
-    test_df['inspection_day'] = test_df['inspection_date'].dt.day
-    test_df['inspection_dayofweek'] = test_df['inspection_date'].dt.dayofweek
-    test_df['inspection_quarter'] = test_df['inspection_date'].dt.quarter
-    test_df['inspection_dayofyear'] = test_df['inspection_date'].dt.dayofyear
+    training_df = post_transformations(training_df)
+    test_df = post_transformations(test_df)
 
     print('finished transformations')
 
