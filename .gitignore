@@ -8,5 +8,5 @@ predictions/
 sftp-config.json
 sendMessage.py
 sendMessage.pyc
-visuals/
+visuals/d3/
 pickle_jar/

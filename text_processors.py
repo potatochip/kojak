@@ -18,8 +18,9 @@ stemmer = SnowballStemmer("english")
 
 def get_processed_text(df, column, description):
     # returns the processed text paired in a dictionary with its index category number
-    with open('pickle_jar/tokenized_'+column+'_'+description) as f:
-        processed = pickle.load(f)
+    processed = load_processed(column, description)
+    # with open('pickle_jar/tokenized_'+column+'_'+description) as f:
+    #     processed = pickle.load(f)
     codes = df[column].cat.codes
     docs = []
     for i in codes:
@@ -41,8 +42,10 @@ def load_processed(column, description):
 def process_text(df, column, description):
     print("Processing {} {}".format(column, description))
     temp_list = []
-    pbar = ProgressBar(maxval=len(df[column].cat.categories)).start()
-    for index, i in enumerate(df[column].cat.categories):
+    pbar = ProgressBar(maxval=len(df[column])).start()
+    for index, i in enumerate(df[column]):
+    # pbar = ProgressBar(maxval=len(df[column].cat.categories)).start()
+    # for index, i in enumerate(df[column].cat.categories):
         temp_list.append(tokenize(i, spell=False, stem=False, lemma=True, lower=True, stop=True))
         pbar.update(index)
     pbar.finish()
@@ -51,7 +54,7 @@ def process_text(df, column, description):
     print("Pre-token shape of {} and post-token shape of {}.".format(len(df[column].cat.categories), len(temp_list)))
 
 
-def tokenize(text, spell=False, stem=False, lemma=True, lower=False, stop=False):
+def tokenize(text, spell=False, stem=False, lemma=False, lower=False, stop=False):
     # lowercase, remove non-alphas and punctuation
     b = TextBlob(unicode(text, 'utf8'))
 
@@ -104,15 +107,15 @@ def count_text(description='base', custom_vec=False):
     print("test count matrix created")
 
 
-def tfidf_text(description='base', custom_vec=False):
+def tfidf_text(texts, description, custom_vec=False):
     # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus? doing otherwise gives the reviews for restaurants that get inspected more frequently altered weight
-    with open('pickle_jar/reviews_tips_original_text.pkl') as f:
-        original_text = pickle.load(f)
+    # with open('pickle_jar/reviews_tips_original_text.pkl') as f:
+    #     texts = pickle.load(f)
     if custom_vec:
         vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1, 3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0)
     else:
         vec = TfidfVectorizer(stop_words='english', max_df=0.9, min_df=2)
-    vec = vec.fit(original_text)
+    vec = vec.fit(texts)
     joblib.dump(vec, 'pickle_jar/tfidf_vectorizer_'+description)
     print("vectorizing finished")
 
@@ -122,10 +125,10 @@ def tfidf_text(description='base', custom_vec=False):
     del train_text, train_docs
     print("train tfidf matrix created")
 
-    test_text = data_grab.get_selects('train', [])
-    test_docs = vec.transform(test_text.review_text)
-    joblib.dump(test_docs, 'pickle_jar/tfidf_test_docs_'+description)
-    print("test tfidf matrix created")
+    # test_text = data_grab.get_selects('train', [])
+    # test_docs = vec.transform(test_text.review_text)
+    # joblib.dump(test_docs, 'pickle_jar/tfidf_test_docs_'+description)
+    # print("test tfidf matrix created")
 
 
 def load_tfidf_docs(frame='train', description='base'):
@@ -146,17 +149,17 @@ def load_count_docs(frame='train', description='base'):
 
 def main():
     t0 = time()
-    # # get plain tfidf
-    # train_text, test_text = data_grab.load_flattened_reviews()
-    # vec, train_tfidf = tfidf_and_save(train_text)
 
-    # get tfidf with custom tokenizer
-    # train_text, test_text = data_grab.load_flattened_reviews()
-    # vec, train_tfidf = tfidf_custom_token_and_save(train_text)
+    # feature_list = ['review_text']
+    # train_df = data_grab.get_selects('train', feature_list)
+    # process_text(train_df, 'review_text', 'lemma')
 
-    feature_list = ['review_text']
-    train_df = data_grab.get_selects('train', feature_list)
-    process_text(train_df, 'review_text', 'lemma')
+    # preprocess flat review text then create tfidf vector
+    train, test = data_grab.get_flats()
+    # train.review_text = train.review_text.astype('category')
+    process_text(train, 'review_text', 'flat_lemma')
+    # texts = get_processed_text(train, 'review_text', 'flat_lemma')
+    # tfidf_text(texts, 'flat_review_text')
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))
