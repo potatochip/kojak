@@ -39,8 +39,8 @@ def coefficients(X, y, y_formula):
     g = sns.coefplot(formula, data, intercept=True)
     g.set_xticklabels(rotation=90)
     plt.tight_layout()
-    plt.savefig('visuals/'X_title+'_'+y_formula+'_coefficient')
-    print('visuals/'X_title+'_'+y_formula+'_coefficient')
+    plt.savefig('visuals/'+X_title+'_'+y_formula+'_coefficient')
+    print('visuals/'+X_title+'_'+y_formula+'_coefficient')
     plt.close()
 
 

@@ -629,3 +629,5 @@ INFO:__main__:102 seconds elapsed from start after entire run.
 2015-06-12 10:01:58,913 : INFO : feature extraction finished
 2015-06-12 10:28:43,545 : INFO : Dataframes loaded
 2015-06-12 10:28:43,550 : INFO : feature extraction finished
+2015-07-06 18:11:26,170 : INFO : dataframes retrieved
+2015-07-06 18:11:30,426 : INFO : feature extraction finished

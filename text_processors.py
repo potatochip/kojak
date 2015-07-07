@@ -8,12 +8,71 @@ from nltk.stem.snowball import SnowballStemmer
 import data_grab
 import pandas as pd
 from textblob import TextBlob
+from nltk.corpus import wordnet as wn
+from textblob import Word
 from sklearn.externals import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
+from multiprocessing import Pool
 
 stopwords = set(nltk.corpus.stopwords.words('english'))
 stemmer = SnowballStemmer("english")
+
+
+
+def is_noun(tag):
+    return tag in ['NN', 'NNS', 'NNP', 'NNPS']
+
+
+def is_verb(tag):
+    return tag in ['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+
+
+def is_adverb(tag):
+    return tag in ['RB', 'RBR', 'RBS']
+
+
+def is_adjective(tag):
+    return tag in ['JJ', 'JJR', 'JJS']
+
+
+def penn_to_wn(tag):
+    if is_adjective(tag):
+        return wn.ADJ
+    elif is_noun(tag):
+        return wn.NOUN
+    elif is_adverb(tag):
+        return wn.ADV
+    elif is_verb(tag):
+        return wn.VERB
+    return None
+
+
+def preprocess_pool(df):
+    df = df[['restaurant_id', 'inspection_date', 'inspection_id', 'review_text', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']]
+    pool = Pool()
+    df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text)
+    pool.close()
+    pool.join()
+    df.to_pickle('pickle_jar/preprocessed_review_text_df')
+
+
+def combine_preprocess(text):
+    b = TextBlob(unicode(text, 'utf8').strip())
+    tags = b.tags
+    tokens = map(preprocess, tags)
+    tokens = filter(None, tokens)
+    return ' '.join(tokens)
+
+
+def preprocess(tagged):
+    word = Word(tagged[0])
+    if word.isalpha() and word not in stopwords:
+        tag = penn_to_wn(tagged[1])
+        l = word.lemmatize(tag)
+    else:
+        l = ''
+    return l.lower()
 
 
 def get_processed_text(df, column, description):
@@ -26,6 +85,27 @@ def get_processed_text(df, column, description):
     for i in codes:
         docs.append(processed[i])
     return docs
+
+
+def sentiments(text):
+    b = TextBlob(unicode(text, 'utf8').strip())
+    # returns the sentiment for all of the reviews together
+    sentiment = tuple(b.sentiment)
+
+    # # returns the sentiment of each sentence
+    # return map(sentiment, b.sentences)
+    # sentiment = lambda x: tuple(x.sentiment)
+
+    return sentiment
+
+
+def sentiment_pool(df):
+    df = df[['restaurant_id', 'inspection_date', 'inspection_id', 'review_text', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']]
+    pool = Pool()
+    df['sentiment'] = pool.map(sentiments, df.review_text)
+    pool.close()
+    pool.join()
+    df.to_pickle('pickle_jar/review_text_sentiment_for_all_reviews_df')
 
 
 def text_to_sentiment(df, column):
@@ -72,6 +152,20 @@ def tokenize(text, spell=False, stem=False, lemma=False, lower=False, stop=False
     else:
         tokens = [w.encode('utf-8') for w in words if w.isalpha()]
     # letters_only = re.sub("[^a-zA-Z]", " ", text)
+
+    # # ngrams
+    # temp_list = []
+    # for i in range(1,ngram+1):
+    #     temp = [list(i) for i in TextBlob(' '.join(tokens)).ngrams(i)]
+    #     try:
+    #         if len(temp[0]) == 1:
+    #             temp_list.extend([i[0] for i in temp])
+    #         else:
+    #             for i in temp:
+    #                 temp_list.append(tuple(i))
+    #     except:
+    #         pass
+    # return temp_list
     return tokens
 
 
@@ -109,8 +203,8 @@ def count_text(description='base', custom_vec=False):
 
 def tfidf_text(texts, description, custom_vec=False):
     # fiting to just the original review corpus before it gets multiplied across all the different inspection dates per restaurant. is this going to skew the results when i transform a corpus larger than the fitted corpus? doing otherwise gives the reviews for restaurants that get inspected more frequently altered weight
-    # with open('pickle_jar/reviews_tips_original_text.pkl') as f:
-    #     texts = pickle.load(f)
+    with open('pickle_jar/reviews_tips_original_text.pkl') as f:
+        texts = pickle.load(f)
     if custom_vec:
         vec = TfidfVectorizer(tokenizer=tokenize, ngram_range=(1, 3), stop_words='english', lowercase=True, sublinear_tf=True, max_df=1.0)
     else:
@@ -125,10 +219,17 @@ def tfidf_text(texts, description, custom_vec=False):
     del train_text, train_docs
     print("train tfidf matrix created")
 
-    # test_text = data_grab.get_selects('train', [])
-    # test_docs = vec.transform(test_text.review_text)
-    # joblib.dump(test_docs, 'pickle_jar/tfidf_test_docs_'+description)
-    # print("test tfidf matrix created")
+    test_text = data_grab.get_selects('train', [])
+    test_docs = vec.transform(test_text.review_text)
+    joblib.dump(test_docs, 'pickle_jar/tfidf_test_docs_'+description)
+    print("test tfidf matrix created")
+
+
+def tfidf_flat():
+    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_df')
+    vec = TfidfVectorizer(ngram_range=(1,3), lowercase=False, sublinear_tf=True, max_df=0.9, min_df=2, max_features=1000)
+    tfidf = vec.fit_transform(prep.preprocessed_review_text)
+    joblib.dump(tfidf, 'pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil')
 
 
 def load_tfidf_docs(frame='train', description='base'):
@@ -156,10 +257,10 @@ def main():
 
     # preprocess flat review text then create tfidf vector
     train, test = data_grab.get_flats()
-    # train.review_text = train.review_text.astype('category')
-    process_text(train, 'review_text', 'flat_lemma')
-    # texts = get_processed_text(train, 'review_text', 'flat_lemma')
-    # tfidf_text(texts, 'flat_review_text')
+    # preprocess_pool(train)
+    # tfidf_flat()
+
+    sentiment_pool(train)
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))

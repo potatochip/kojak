@@ -276,8 +276,8 @@ def main():
 from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
+from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
 # estimator_list = [
 #                     # GaussianNB(),
