@@ -7,13 +7,16 @@ from time import time
 from nltk.stem.snowball import SnowballStemmer
 import data_grab
 import pandas as pd
+import numpy as np
 from textblob import TextBlob
 from nltk.corpus import wordnet as wn
 from textblob import Word
+from time import time
 from sklearn.externals import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from multiprocessing import Pool
+from gensim.models import Word2Vec
 
 stopwords = set(nltk.corpus.stopwords.words('english'))
 stemmer = SnowballStemmer("english")
@@ -85,6 +88,37 @@ def get_processed_text(df, column, description):
     for i in codes:
         docs.append(processed[i])
     return docs
+
+
+def similarity_vector(text):
+    b = TextBlob(text)
+    similarities = []
+    for word in b.words:
+        try:
+            similarities.append(g_model.similarity(topic, word))
+        except:
+            pass
+    # keep just the top 100 similar words in reveiw
+    sim_vec = np.array(sorted(similarities, reverse=True)[:100], dtype='float32')
+    # fill the review with zeroes if its less than 100 words
+    backfill = lambda x: np.append(x, np.zeros((100 - len(x),)))
+    return backfill(sim_vec) if len(sim_vec) > 0 else ''
+
+
+def similarity_pool():
+    df = pd.read_pickle('pickle_jar/preprocessed_review_text_df')
+    topic_list = ['manager', 'supervisor', 'training', 'safe', 'disease', 'ill', 'sick', 'poisoning', 'hygiene', 'raw', 'undercooked', 'cold', 'clean', 'sanitary', 'wash', 'jaundice', 'yellow', 'hazard', 'inspection', 'violation', 'gloves', 'hairnet', 'nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'toiletpaper', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs']
+    for i in topic_list:
+        t0 = time()
+        global topic
+        topic = i
+        print("Working on '{}''".format(topic))
+        pool = Pool()
+        df[topic] = pool.map(similarity_vector, df.preprocessed_review_text)
+        pool.close()
+        pool.join()
+        print("{} seconds passed".format(time()-t0))
+    df.to_pickle('pickle_jar/similarity_vectors_df')
 
 
 def sentiments(text):
@@ -256,11 +290,14 @@ def main():
     # process_text(train_df, 'review_text', 'lemma')
 
     # preprocess flat review text then create tfidf vector
-    train, test = data_grab.get_flats()
+    # train, test = data_grab.get_flats()
     # preprocess_pool(train)
     # tfidf_flat()
 
-    sentiment_pool(train)
+    # sentiment_pool(train)
+    global g_model
+    g_model = Word2Vec.load_word2vec_format('w2v data/GoogleNews-vectors-negative300.bin.gz', binary=True)
+    similarity_pool()
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))

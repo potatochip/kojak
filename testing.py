@@ -61,6 +61,9 @@ if __name__ == '__main__':
     from sklearn.svm import SVC
     from sklearn.ensemble import BaggingClassifier
 
+    from sklearn.decomposition import TruncatedSVD
+    from sklearn.decomposition import PCA
+
     # set classifiers to test
     estimator_list = [
         MultinomialNB(),
@@ -70,7 +73,9 @@ if __name__ == '__main__':
     for estimator in estimator_list:
         print(estimator)
         pipeline = Pipeline([
-        #         ('scaler', StandardScaler()),
+                # ('decomp', TruncatedSVD(n_components=5, random_state=42)),
+                # ('decomp', PCA(n_components=2)),
+                # ('scaler', StandardScaler()),
                 ('clf', estimator),
         ])
 

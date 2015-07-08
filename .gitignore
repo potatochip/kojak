@@ -1,4 +1,5 @@
 .*
+*.pyc
 data/
 models/
 predictions/
@@ -10,3 +11,4 @@ sendMessage.py
 sendMessage.pyc
 visuals/d3/
 pickle_jar/
+w2v data/
