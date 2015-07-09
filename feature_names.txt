@@ -1,7 +1,7 @@
 restaurant_id - category
 review_date - datetime64[ns]
 review_stars - float64
-review_text - category
+review_text - object
 user_id - category
 review_votes_cool - float64
 review_votes_funny - float64
@@ -94,11 +94,6 @@ restaurant_longitude - float64
 restaurant_name - category
 restaurant_open - object
 restaurant_review_count - float64
-restaurant_ambience - category
-restaurant_music - category
-restaurant_parking - category
-restaurant_street - category
-restaurant_zipcode - category
 checkin_counts - float64
 review_year - int64
 review_month - int64
@@ -107,6 +102,11 @@ review_dayofweek - int64
 review_quarter - int64
 review_dayofyear - int64
 user_most_recent_elite_year - float64
+restaurant_ambience - category
+restaurant_music - category
+restaurant_parking - category
+restaurant_street - category
+restaurant_zipcode - category
 inspection_id - int64
 inspection_date - datetime64[ns]
 score_lvl_1 - int64
@@ -122,7 +122,8 @@ restaurant_category_4 - category
 restaurant_category_5 - category
 restaurant_category_6 - category
 restaurant_category_7 - category
-time_delta - float64
+review_delta - float64
+previous_inspection_delta - timedelta64[ns]
 inspection_year - int64
 inspection_month - int64
 inspection_day - int64

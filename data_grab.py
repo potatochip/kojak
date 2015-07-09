@@ -314,8 +314,8 @@ def transform_features(df):
     df['restaurant_zipcode'] = df['restaurant_full_address'].apply(lambda x: re.search('\d+$', x).group() if re.search('\d+$', x) is not None else np.nan)
     # df.drop('restaurant_full_address', axis=1, inplace=True)
 
-    # force text to non-unicode
-    print('force text to non-unicode')
+    # fix jacked up text
+    print('fix jacked up text')
     df['review_text'] = df['review_text'].apply(lambda x: unicodedata.normalize('NFKD', x) if type(x) != str else x)
 
     return df
@@ -327,9 +327,6 @@ def make_feature_response(feature_df, response_df):
 
     # combine features and response
     features_response = pd.merge(feature_df, response_df, on='restaurant_id', how='right')
-
-    # remove reviews and tips that occur after an inspection - canceled because then end up removing restaurants that we are trying to predict for. future reviews still have predictive power and frames with no reviews but other information still have predictive power
-    # no_future = features_response[features_response.review_date < features_response.inspection_date]
 
     return features_response
 
@@ -362,7 +359,7 @@ def make_categoricals(train_df, test_df):
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_name')
     train_df, test_df = easy_categories(train_df, test_df, column='user_id')
     train_df, test_df = easy_categories(train_df, test_df, column='user_name')
-    # i commented the below out at some point... why was that?
+    # i commented the below out at some point... why was that. usually need to use df.restaurant_id.convert_objects() if want to work with it again
     train_df, test_df = easy_categories(train_df, test_df, column='restaurant_id')
 
     # make review_text categorical to make it easier to work with
@@ -439,7 +436,27 @@ def post_transformations(df):
     '''
 
     # create number representing days passed between inspection date and review date
-    df['time_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
+    df['review_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
+
+    # create number representing days passed since last inspection date and current inspection date
+    temp_df = df[['restaurant_id', 'inspection_date']]
+    temp_df['temp_date'] = temp_df['inspection_date']
+    temp_df.restaurant_id = temp_df.restaurant_id.convert_objects()
+    g = temp_df.groupby(['restaurant_id', 'inspection_date'])
+    # diff doesnt work witout calling first or max or min or whatever first
+    delta = g.temp_date.first().diff()
+    for i in delta.index.levels[0]:
+        delta[i][0] = -1  # won't allow np.nan or pd.NaT directly
+    delta.replace(-1, np.nan, inplace=True)
+    # # pd.merge resets all the datatypes so doing this instead. takes FOREVER
+    # temp_df['previous_inspection_delta'] = temp_df[['restaurant_id', 'inspection_date']].apply(lambda x: delta.loc[x.restaurant_id, x.inspection_date], axis=1)
+    # # clean up
+    # df.restaurant_id = df.restaurant_id.astype('category')
+    # df.drop('temp_date', axis=1, inplace=True)
+    # pd.merge resets all the datatypes so doing this instead.
+    delta = delta.reset_index()
+    delta = delta.rename(columns={'temp_date': 'previous_inspection_delta'})
+    df = pd.concat([df, pd.merge(temp_df, delta, how='left', on=['restaurant_id', 'inspection_date'])['previous_inspection_delta']], axis=1)
 
     # transform inspection date
     df['inspection_year'] = df['inspection_date'].dt.year
@@ -449,7 +466,14 @@ def post_transformations(df):
     df['inspection_quarter'] = df['inspection_date'].dt.quarter
     df['inspection_dayofyear'] = df['inspection_date'].dt.dayofyear
 
+    # remove reviews and tips that occur after an inspection
+    no_future = lambda x: np.nan if x.review_date > x.inspection_date else x.review_text
+    df.review_text = df.apply(no_future, axis=1)
+    # the above maintains all the other information. below gets rid of the entire observation and potentially loses non-review related information if a restaurant is left with no reviews.
+    # no_future = features_response[features_response.review_date < features_response.inspection_date]
+
     return df
+
 
 def make_train_test():
     # creates hierarchical dataframe with all of the reviews ever given to a restaruant duplicated for every inspection date for a restaurant
@@ -481,7 +505,7 @@ def make_train_test():
     test_df.to_pickle('pickle_jar/test_df.pkl')
     print('both dataframes pickled')
 
-    # make flat dataframes and save them
+    # make flat dataframes with one observation per inspection and save them
     print('making flat dataframes')
     print("Response shape of {}".format(training_response.shape))
     print("Submission shape of {}".format(submission.shape))
@@ -507,7 +531,7 @@ def get_selects(frame, features=None):
         df = pd.read_pickle('pickle_jar/training_df.pkl')
         if features:
             features = features[:]
-            features.extend(['score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
+            features.extend(['review_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
             return df[features]
         else:
             return df
@@ -515,7 +539,7 @@ def get_selects(frame, features=None):
         df = pd.read_pickle('pickle_jar/test_df.pkl')
         if features:
             features = features[:]
-            features.extend(['inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
+            features.extend(['review_delta', 'inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
             return df[features]
         else:
             return df

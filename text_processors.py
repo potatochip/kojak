@@ -97,7 +97,11 @@ def similarity_vector(text):
         try:
             similarities.append(g_model.similarity(topic, word))
         except:
-            pass
+            try:
+                # since google did a shitty preprocessing job and the model is case-sensitive
+                similarities.append(g_model.similarity(topic, word.title()))
+            except:
+                pass
     # keep just the top 100 similar words in reveiw
     sim_vec = np.array(sorted(similarities, reverse=True)[:100], dtype='float32')
     # fill the review with zeroes if its less than 100 words
@@ -107,7 +111,7 @@ def similarity_vector(text):
 
 def similarity_pool():
     df = pd.read_pickle('pickle_jar/preprocessed_review_text_df')
-    topic_list = ['manager', 'supervisor', 'training', 'safety', 'disease', 'ill', 'sick', 'poisoning', 'hygiene', 'raw', 'undercooked', 'cold', 'clean', 'sanitary', 'wash', 'jaundice', 'yellow', 'hazard', 'inspection', 'violation', 'gloves', 'hairnet', 'nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'toiletpaper', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs']
+    topic_list = ['manager', 'supervisor', 'training', 'safety', 'disease', 'ill', 'sick', 'poisoning', 'hygiene', 'raw', 'undercooked', 'cold', 'clean', 'sanitary', 'wash', 'jaundice', 'yellow', 'hazard', 'inspection', 'violation', 'gloves', 'hairnet', 'nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'toiletpaper', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs', 'mold']
     for i in topic_list:
         t0 = time()
         global topic

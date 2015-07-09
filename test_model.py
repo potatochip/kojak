@@ -256,6 +256,7 @@ def main():
 # # can use with text if convert X to dense with .toarray() but is super heavy on ram
 # pipeline = Pipeline([
 #         ('scaler', StandardScaler()),
+# #        ('scaler', StandardScaler(with_mean=False)) #  for sparse matrix
 #         ('clf', estimator),
 # ])
 

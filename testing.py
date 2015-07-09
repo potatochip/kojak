@@ -76,6 +76,8 @@ if __name__ == '__main__':
                 # ('decomp', TruncatedSVD(n_components=5, random_state=42)),
                 # ('decomp', PCA(n_components=2)),
                 # ('scaler', StandardScaler()),
+                # ('normalizer', Normalizer(norm='l2')), #  for text classification and clustering
+                ('scaler', StandardScaler(with_mean=False)), #  for sparse matrix
                 ('clf', estimator),
         ])
 

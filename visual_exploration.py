@@ -37,7 +37,7 @@ def coefficients(X, y, y_formula):
     print("\n* Formula: {}".format(formula))
     data = pd.concat([X, y], axis=1)
     g = sns.coefplot(formula, data, intercept=True)
-    g.set_xticklabels(rotation=90)
+    plt.xticks(rotation=90)
     plt.tight_layout()
     plt.savefig('visuals/'+X_title+'_'+y_formula+'_coefficient')
     print('visuals/'+X_title+'_'+y_formula+'_coefficient')
