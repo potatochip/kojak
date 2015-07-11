@@ -446,8 +446,8 @@ def post_transformations(df):
     # diff doesnt work witout calling first or max or min or whatever first
     delta = g.temp_date.first().diff()
     for i in delta.index.levels[0]:
-        delta[i][0] = -1  # won't allow np.nan or pd.NaT directly
-    delta.replace(-1, np.nan, inplace=True)
+        delta[i][0] = 0  # won't allow np.nan or pd.NaT directly
+    # delta.replace(-1, np.nan, inplace=True)
     # # pd.merge resets all the datatypes so doing this instead. takes FOREVER
     # temp_df['previous_inspection_delta'] = temp_df[['restaurant_id', 'inspection_date']].apply(lambda x: delta.loc[x.restaurant_id, x.inspection_date], axis=1)
     # # clean up
@@ -456,7 +456,7 @@ def post_transformations(df):
     # pd.merge resets all the datatypes so doing this instead.
     delta = delta.reset_index()
     delta = delta.rename(columns={'temp_date': 'previous_inspection_delta'})
-    df = pd.concat([df, pd.merge(temp_df, delta, how='left', on=['restaurant_id', 'inspection_date'])['previous_inspection_delta']], axis=1)
+    df = pd.concat([df, pd.merge(temp_df, delta, how='left', on=['restaurant_id', 'inspection_date'])['previous_inspection_delta'].dt.days], axis=1)
 
     # transform inspection date
     df['inspection_year'] = df['inspection_date'].dt.year
@@ -531,7 +531,7 @@ def get_selects(frame, features=None):
         df = pd.read_pickle('pickle_jar/training_df.pkl')
         if features:
             features = features[:]
-            features.extend(['review_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
+            features.extend(['review_delta', 'previous_inspection_delta', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
             return df[features]
         else:
             return df
@@ -539,7 +539,7 @@ def get_selects(frame, features=None):
         df = pd.read_pickle('pickle_jar/test_df.pkl')
         if features:
             features = features[:]
-            features.extend(['review_delta', 'inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
+            features.extend(['review_delta', 'previous_inspection_delta', 'inspection_id', 'inspection_date', 'restaurant_id', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3'])
             return df[features]
         else:
             return df

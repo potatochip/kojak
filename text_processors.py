@@ -17,6 +17,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from multiprocessing import Pool
 from gensim.models import Word2Vec
+# from vaderSentiment.vaderSentiment import sentiment as vaderSentiment
+# above breaks ipython print statement so turning it off until needed
 
 stopwords = set(nltk.corpus.stopwords.words('english'))
 stemmer = SnowballStemmer("english")
@@ -51,13 +53,13 @@ def penn_to_wn(tag):
     return None
 
 
-def preprocess_pool(df):
-    df = df[['restaurant_id', 'inspection_date', 'inspection_id', 'review_text', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']]
+def preprocess_pool(df, filename):
     pool = Pool()
-    df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text)
+    df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text.fillna(''))
     pool.close()
     pool.join()
-    df.to_pickle('pickle_jar/preprocessed_review_text_df')
+    # df.drop('review_text', axis=1, inplace=True)
+    df.to_pickle('pickle_jar/'+filename)
 
 
 def combine_preprocess(text):
@@ -126,44 +128,55 @@ def similarity_pool():
 
 
 def sentiments(text):
-    b = TextBlob(unicode(text, 'utf8').strip())
-    # returns the sentiment for all of the reviews together
-    sentiment = tuple(b.sentiment)
+    if pd.isnull(text):
+        pass
+    else:
+        b = TextBlob(unicode(text, 'utf8').strip())
+        # returns the sentiment for all of the reviews together
+        sentiment = tuple(b.sentiment)
 
-    # # returns the sentiment of each sentence
-    # return map(sentiment, b.sentences)
-    # sentiment = lambda x: tuple(x.sentiment)
+        # # returns the sentiment for each sentence
+        # return map(sentiment, b.sentences)
+        # sentiment = lambda x: tuple(x.sentiment)
 
-    return sentiment
+        return sentiment
 
 
-def sentiment_pool(df):
-    df = df[['restaurant_id', 'inspection_date', 'inspection_id', 'review_text', 'score_lvl_1', 'score_lvl_2', 'score_lvl_3']]
+def sentiment_pool(df, filename):
     pool = Pool()
     df['sentiment'] = pool.map(sentiments, df.review_text)
+    df['vader'] = pool.map(vader, df.review_text)
     pool.close()
     pool.join()
-    df.to_pickle('pickle_jar/review_text_sentiment_for_all_reviews_df')
+    # df.drop('review_text', axis=1, inplace=True)
+    df['polarity'] = df.sentiment.apply(lambda x: x if pd.isnull(x) else x[0])
+    df['subjectivity'] = df.sentiment.apply(lambda x: x if pd.isnull(x) else x[1])
+    df['neg'] = df.vader.apply(lambda x: x if pd.isnull(x) else x['neg'])
+    df['neu'] = df.vader.apply(lambda x: x if pd.isnull(x) else x['neu'])
+    df['pos'] = df.vader.apply(lambda x: x if pd.isnull(x) else x['pos'])
+    df['compound'] = df.vader.apply(lambda x: x if pd.isnull(x) else x['compound'])
+    df.to_pickle('pickle_jar/'+filename)
 
 
-def text_to_sentiment(df, column):
-    # vader sentiment analysis
-    pass
+def vader(text):
+    '''vader sentiment analysis'''
+    if pd.isnull(text):
+        pass
+    else:
+        return vaderSentiment(text)
 
 
 def load_processed(column, description):
     with open('pickle_jar/tokenized_'+column+'_'+description) as f:
         temp_list = pickle.load(f)
-    return temp_list
+    return temp_list    
 
 
 def process_text(df, column, description):
     print("Processing {} {}".format(column, description))
     temp_list = []
-    pbar = ProgressBar(maxval=len(df[column])).start()
-    for index, i in enumerate(df[column]):
-    # pbar = ProgressBar(maxval=len(df[column].cat.categories)).start()
-    # for index, i in enumerate(df[column].cat.categories):
+    pbar = ProgressBar(maxval=len(df[column].cat.categories)).start()
+    for index, i in enumerate(df[column].cat.categories):
         temp_list.append(tokenize(i, spell=False, stem=False, lemma=True, lower=True, stop=True))
         pbar.update(index)
     pbar.finish()
@@ -263,11 +276,10 @@ def tfidf_text(texts, description, custom_vec=False):
     print("test tfidf matrix created")
 
 
-def tfidf_flat():
-    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_df')
-    vec = TfidfVectorizer(ngram_range=(1,3), lowercase=False, sublinear_tf=True, max_df=0.9, min_df=2, max_features=1000)
-    tfidf = vec.fit_transform(prep.preprocessed_review_text)
-    joblib.dump(tfidf, 'pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil')
+def tfidf(df, filename):
+    vec = TfidfVectorizer(ngram_range=(1,3), lowercase=False, sublinear_tf=True, max_df=0.9, min_df=2, max_features=1000000)
+    tfidf = vec.fit_transform(df.preprocessed_review_text)
+    joblib.dump(tfidf, 'pickle_jar/'+filename)
 
 
 def load_tfidf_docs(frame='train', description='base'):
@@ -293,15 +305,27 @@ def main():
     # train_df = data_grab.get_selects('train', feature_list)
     # process_text(train_df, 'review_text', 'lemma')
 
-    # preprocess flat review text then create tfidf vector
+    # preprocess flat review text then create tfidf vector and sentiments
     # train, test = data_grab.get_flats()
-    # preprocess_pool(train)
-    # tfidf_flat()
+    # preprocess_pool(train, 'preprocessed_review_text_flat_df')
+    # sentiment_pool(train, 'review_text_sentiment_for_all_reviews_df')
+    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_flat_df')
+    # tfidf_flat(prep, 'tfidf_preprocessed_ngram3_sublinear_1mil')
 
-    # sentiment_pool(train)
-    global g_model
-    g_model = Word2Vec.load_word2vec_format('w2v data/GoogleNews-vectors-negative300.bin.gz', binary=True)
-    similarity_pool()
+
+    # preprocess hierchical review text then create tfidf vector
+    train = data_grab.get_selects('train')
+    # preprocess_pool(train, 'preprocessed_review_text_hierarchical_df')
+    sentiment_pool(train, 'review_text_sentiment_hierarchical_df')
+    
+    # tfidf might be a bit messed up since hierchical is going to make multiples of everything. so places that have more inspection dates are going to end up with reviews that have less weighted text
+    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df')
+    # tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_1mil_hierarchical')
+
+    # # create word2vec sentiment vectors
+    # global g_model
+    # g_model = Word2Vec.load_word2vec_format('w2v data/GoogleNews-vectors-negative300.bin.gz', binary=True)
+    # similarity_pool()
 
     t1 = time()
     print("{} seconds elapsed.".format(int(t1 - t0)))
