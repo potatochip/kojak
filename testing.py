@@ -25,6 +25,7 @@ import operator
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import SGDClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import SGDRegressor
 from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import Perceptron
@@ -32,8 +33,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import BaggingClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.decomposition import TruncatedSVD
-from sklearn.decomposition import PCA
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 
 
 
@@ -104,26 +105,37 @@ def make_bins(df, bin_size=30):
     return df
 
 
-def test1(df):
+def test1():
     '''testing multiple models'''
-    X, y = extract_features(df)
+    # X, y = extract_features(df)
+    # tfidf = joblib.load( 'pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil')
 
-    tfidf = joblib.load( 'pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil')
+    X = joblib.load('pickle_jar/final_matrix')
+    y = joblib.load('pickle_jar/final_y')
 
     # set classifiers to test
     estimator_list = [
-        MultinomialNB(),
-        SGDClassifier(n_jobs=-1),
+            RandomForestClassifier(n_jobs=-1, random_state=42),
+            SGDClassifier(n_jobs=-1, random_state=42),
+            Perceptron(n_jobs=-1, random_state=42),  # gets some nuances
+            SGDRegressor(random_state=42),
+            RandomForestRegressor(n_jobs=-1, random_state=42),
+            KNeighborsClassifier(),
+            KNeighborsRegressor(),  # gets some nuances
+            LinearSVC(),
+            LinearRegression(),# gets some nuances
         ]
 
     for estimator in estimator_list:
         print(estimator)
         pipeline = Pipeline([
+                # ('low_var_removal', VarianceThreshold()),
+                # ('normalizer', Normalizer()),
                 # ('decomp', TruncatedSVD(n_components=5, random_state=42)),
                 # ('decomp', PCA(n_components=2)),
                 # ('scaler', StandardScaler()),
                 # ('normalizer', Normalizer(norm='l2')), #  for text classification and clustering
-                ('scaler', StandardScaler(with_mean=False)), #  for sparse matrix
+                # ('scaler', StandardScaler(with_mean=False)), #  for sparse matrix
                 ('clf', estimator),
         ])
 
@@ -181,15 +193,13 @@ def test3(df):
 
 if __name__ == '__main__':
     t0 = time()
-    import data_grab
-    df = pd.read_pickle('pickle_jar/review_text_sentiment_hierarchical_df')
-    scores = ['score_lvl_1', 'score_lvl_2', 'score_lvl_3']
 
-    # should be able to get rid of this in the next data grab
-    df.previous_inspection_delta = df.previous_inspection_delta.fillna(0)
-    df.previous_inspection_delta = df.previous_inspection_delta.dt.days
-    df = make_bins(df)
+    # import data_grab
+    # df = pd.read_pickle('pickle_jar/review_text_sentiment_hierarchical_df')
+    # scores = ['score_lvl_1', 'score_lvl_2', 'score_lvl_3']
+    #
+    # df = make_bins(df)
 
-    test2(df)
+    test1()
 
     print("{} seconds elapsed".format(time()-t0))
