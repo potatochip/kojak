@@ -380,12 +380,12 @@ def make_categoricals(train_df, test_df):
     train_temp_df['restaurant_neighborhood_2'] = train_temp_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
     train_temp_df['restaurant_neighborhood_3'] = train_temp_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
     train_df = pd.concat([train_df, train_temp_df], axis=1, join_axes=[train_df.index])
-    train_df.drop('restaurant_neighborhoods', axis=1, inplace=True)
+    # train_df.drop('restaurant_neighborhoods', axis=1, inplace=True)
     test_temp_df['restaurant_neighborhood_1'] = test_temp_df['restaurant_neighborhood_1'].astype('category', categories=set(cats))
     test_temp_df['restaurant_neighborhood_2'] = test_temp_df['restaurant_neighborhood_2'].astype('category', categories=set(cats))
     test_temp_df['restaurant_neighborhood_3'] = test_temp_df['restaurant_neighborhood_3'].astype('category', categories=set(cats))
     test_df = pd.concat([test_df, test_temp_df], axis=1, join_axes=[test_df.index])
-    test_df.drop('restaurant_neighborhoods', axis=1, inplace=True)
+    # test_df.drop('restaurant_neighborhoods', axis=1, inplace=True)
 
     # expand restaurant categories out
     print('expand restaurant categories out')
@@ -400,7 +400,7 @@ def make_categoricals(train_df, test_df):
     train_temp_df['restaurant_category_6'] = train_temp_df['restaurant_category_6'].astype('category', categories=set(cats))
     train_temp_df['restaurant_category_7'] = train_temp_df['restaurant_category_7'].astype('category', categories=set(cats))
     train_df = pd.concat([train_df, train_temp_df], axis=1, join_axes=[train_df.index])
-    train_df.drop('restaurant_categories', axis=1, inplace=True)
+    # train_df.drop('restaurant_categories', axis=1, inplace=True)
     test_temp_df['restaurant_category_1'] = test_temp_df['restaurant_category_1'].astype('category', categories=set(cats))
     test_temp_df['restaurant_category_2'] = test_temp_df['restaurant_category_2'].astype('category', categories=set(cats))
     test_temp_df['restaurant_category_3'] = test_temp_df['restaurant_category_3'].astype('category', categories=set(cats))
@@ -409,7 +409,7 @@ def make_categoricals(train_df, test_df):
     test_temp_df['restaurant_category_6'] = test_temp_df['restaurant_category_6'].astype('category', categories=set(cats))
     test_temp_df['restaurant_category_7'] = test_temp_df['restaurant_category_7'].astype('category', categories=set(cats))
     test_df = pd.concat([test_df, test_temp_df], axis=1, join_axes=[test_df.index])
-    test_df.drop('restaurant_categories', axis=1, inplace=True)
+    # test_df.drop('restaurant_categories', axis=1, inplace=True)
 
     return train_df, test_df
 
@@ -438,7 +438,7 @@ def post_transformations(df):
     # create number representing days passed between inspection date and review date
     df['review_delta'] = (df.inspection_date - df.review_date).astype('timedelta64[D]')
 
-    # create number representing days passed since last inspection date and current inspection date
+    # create number representing days passed since last inspection date and current inspection date. first entry for a restaurant is set at 0 delta
     temp_df = df[['restaurant_id', 'inspection_date']]
     temp_df['temp_date'] = temp_df['inspection_date']
     temp_df.restaurant_id = temp_df.restaurant_id.convert_objects()
@@ -471,6 +471,17 @@ def post_transformations(df):
     df.review_text = df.apply(no_future, axis=1)
     # the above maintains all the other information. below gets rid of the entire observation and potentially loses non-review related information if a restaurant is left with no reviews.
     # no_future = features_response[features_response.review_date < features_response.inspection_date]
+
+    # # bin time delta data
+    # bin_size = 30
+    # tdmax = df.review_delta.max()
+    # tdmin = df.review_delta.min()
+    # df['review_delta_bin'] = pd.cut(df["review_delta"], np.arange(tdmin, tdmax, bin_size))
+    # df['review_delta_bin_codes'] = df.review_delta_bin.astype('category').cat.codes
+    # tdmax = df.previous_inspection_delta.max()
+    # tdmin = df.previous_inspection_delta.min()
+    # df['previous_inspection_delta_bin'] = pd.cut(df["previous_inspection_delta"], np.arange(tdmin-1, tdmax, bin_size))
+    # df['previous_inspection_delta_bin_codes'] = df.previous_inspection_delta_bin.astype('category').cat.codes
 
     return df
 

@@ -73,6 +73,7 @@ restaurant_attributes_takes_reservations - bool
 restaurant_attributes_waiter_service - bool
 restaurant_attributes_wheelchair_accessible - bool
 restaurant_attributes_wifi - category
+restaurant_categories - object
 restaurant_city - category
 restaurant_full_address - object
 restaurant_hours_friday_close - float64
@@ -92,6 +93,7 @@ restaurant_hours_wednesday_open - float64
 restaurant_latitude - float64
 restaurant_longitude - float64
 restaurant_name - category
+restaurant_neighborhoods - object
 restaurant_open - object
 restaurant_review_count - float64
 checkin_counts - float64
@@ -123,7 +125,7 @@ restaurant_category_5 - category
 restaurant_category_6 - category
 restaurant_category_7 - category
 review_delta - float64
-previous_inspection_delta - timedelta64[ns]
+0 - int64
 inspection_year - int64
 inspection_month - int64
 inspection_day - int64
