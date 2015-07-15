@@ -60,9 +60,10 @@ def penn_to_wn(tag):
 
 
 def preprocess_pool(df, filename):
+    df.dropna(subset=['review_text'], inplace=True)
     pool = Pool()
     # df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text.fillna(''))
-    df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text.dropna())
+    df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text)
     pool.close()
     pool.join()
     df.drop('review_text', axis=1, inplace=True)
@@ -314,7 +315,8 @@ def tfidf_text(texts, description, custom_vec=False):
 
 def tfidf(df, filename):
     vec = TfidfVectorizer(ngram_range=(1,3), lowercase=False, sublinear_tf=True, max_df=0.9, min_df=2, max_features=1000000)
-    texts = df.preprocessed_review_text.replace('', np.nan).dropna()
+    # texts = df.preprocessed_review_text.replace('', np.nan).dropna()
+    texts = df.preprocessed_review_text
     print(texts.shape)
     tfidf = vec.fit_transform(texts)
     joblib.dump(tfidf, 'pickle_jar/'+filename)
@@ -352,13 +354,14 @@ def main():
 
 
     # preprocess hierchical review text then create tfidf vector
-    train = data_grab.get_selects('train')
-    prep = preprocess_pool(train, 'preprocessed_review_text_hierarchical_df_dropna')
-    del train
+    # train = data_grab.get_selects('train')
+    # prep = preprocess_pool(train, 'preprocessed_review_text_hierarchical_df_dropna')
+    # del train
     # sentiment_pool(train, 'review_text_sentiment_hierarchical_df')
 
     # tfidf might be a bit messed up since hierchical is going to make multiples of everything. so places that have more inspection dates are going to end up with reviews that have less weighted text
-    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df_dropna')
+    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df_dropna')
+    print('starting tfidf')
     tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_1mil_hierarchical_dropna')
 
     # # create word2vec sentiment vectors

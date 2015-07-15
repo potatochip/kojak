@@ -1,11 +1,7 @@
 import numpy as np
 import pandas as pd
 import data_grab
-import seaborn as sns
-import matplotlib.pyplot as plt
 from pandas.io.json import json_normalize
-import json
-from textblob import TextBlob
 from sklearn.cross_validation import cross_val_score
 import metrics
 from sklearn.cross_validation import train_test_split
@@ -20,7 +16,9 @@ from sklearn.externals import joblib
 from sklearn.metrics import accuracy_score
 from time import time
 from itertools import combinations
+from pprint import pprint
 import operator
+import sendMessage
 
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import SGDClassifier
@@ -36,6 +34,9 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 
+from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
+from sklearn.feature_selection import VarianceThreshold
+
 
 
 def contest_metric(numpy_array_predictions, numpy_array_actual_values):
@@ -47,20 +48,23 @@ def raw_scoring(X, y, pipeline):
     xtrain, xtest, ytrain, ytest = train_test_split(X, y, random_state=42)
 
     p1 = pipeline.fit(xtrain, ytrain['score_lvl_1']).predict(xtest)
-    score1 = accuracy_score(ytest['score_lvl_1'], np.round(p1))
+    r1 = np.clip(np.round(p1), 0, np.inf)
+    score1 = accuracy_score(ytest['score_lvl_1'], r1)
     print("Level 1 accuracy score of {}".format(score1))
     p2 = pipeline.fit(xtrain, ytrain['score_lvl_2']).predict(xtest)
-    score2 = accuracy_score(ytest['score_lvl_2'], np.round(p2))
+    r2 = np.clip(np.round(p2), 0, np.inf)
+    score2 = accuracy_score(ytest['score_lvl_2'], r2)
     print("Level 2 accuracy score of {}".format(score2))
     p3 = pipeline.fit(xtrain, ytrain['score_lvl_3']).predict(xtest)
-    score3 = accuracy_score(ytest['score_lvl_3'], np.round(p3))
+    r3 = np.clip(np.round(p3), 0, np.inf)
+    score3 = accuracy_score(ytest['score_lvl_3'], r3)
     print("Level 3 accuracy score of {}".format(score3))
 
     results = np.dstack((p1, p2, p3))[0]
-    score = contest_metric(np.round(results), np.array(ytest))
+    rounded = np.clip(np.round(results), 0, np.inf)
+    score = contest_metric(rounded, np.array(ytest))
     print("Contest score of {}".format(score))
 
-    rounded = np.clip(np.round(results), 0, np.inf)
     compare = pd.concat([pd.DataFrame(np.concatenate((results, rounded), axis=1)), ytest.reset_index(drop=True)], axis=1)
     compare.columns = ['pred1','pred2','pred3','round1','round2','round3','true1','true2','true3']
     compare['offset1'] = compare.round1-compare.true1
@@ -74,7 +78,6 @@ def extract_features(df):
     response = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.float64)  #for numerical progression
     # response = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']].astype(np.int8)  # for categorical response
     return features, response
-
 
 def multi_feature_test(X, y, pipeline, feature_list):
     xtrain, xtest, ytrain, ytest = train_test_split(X, y, random_state=42)
@@ -115,18 +118,17 @@ def test1():
 
     # set classifiers to test
     estimator_list = [
-            RandomForestClassifier(n_jobs=-1, random_state=42),
-            SGDClassifier(n_jobs=-1, random_state=42),
-            Perceptron(n_jobs=-1, random_state=42),  # gets some nuances
-            SGDRegressor(random_state=42),
-            RandomForestRegressor(n_jobs=-1, random_state=42),
-            KNeighborsClassifier(),
-            KNeighborsRegressor(),  # gets some nuances
+            # RandomForestClassifier(n_jobs=-1, random_state=42),
+            # SGDClassifier(n_jobs=-1, random_state=42),
+            # Perceptron(n_jobs=-1, random_state=42),  # gets some nuances
+            # SGDRegressor(random_state=42),
             LinearSVC(),
             LinearRegression(),# gets some nuances
+            LogisticRegression(random_state=42)
         ]
 
     for estimator in estimator_list:
+        t0 = time()
         print(estimator)
         pipeline = Pipeline([
                 # ('low_var_removal', VarianceThreshold()),
@@ -138,8 +140,10 @@ def test1():
                 # ('scaler', StandardScaler(with_mean=False)), #  for sparse matrix
                 ('clf', estimator),
         ])
-
         raw_scoring(X, y, pipeline)
+        t1 = time()
+        sendMessage.doneTextSend(t0, t1, 'text_processors')
+
 
 
 def test2(df):
@@ -189,6 +193,39 @@ def test3(df):
     print("***")
     # print(ranked[:-10:-1])
     print(ranked[0:10])
+
+def test4():
+    '''get best params with cross fold validation for both the feature extraction and the classifier'''
+    tstart = time()
+    X = joblib.load('pickle_jar/final_matrix')
+    y = joblib.load('pickle_jar/final_y')
+
+    y = y.score_lvl_1
+
+    parameters = {"max_depth": [3, None],
+                  "max_features": [1, 3, 10],
+                  "min_samples_split": [1, 3, 10],
+                  "min_samples_leaf": [1, 3, 10],
+                  "bootstrap": [True, False],
+                  "criterion": ["gini", "entropy"]}
+    clf = RandomForestClassifier(n_jobs=-1)
+    grid_search = GridSearchCV(clf, parameters, verbose=1)
+    print "Performing grid search..."
+    print "parameters:"
+    pprint(parameters)
+    t0 = time()
+    grid_search.fit(X, y)
+    print "done in %0.3fs" % (time() - t0)
+    print
+    print "Best score: %0.3f" % grid_search.best_score_
+    print "Best parameters set:"
+    best_parameters = grid_search.best_estimator_.get_params()
+    for param_name in sorted(parameters.keys()):
+        print "\t%s: %r" % (param_name, best_parameters[param_name])
+
+    t1 = time()
+    sendMessage.doneTextSend(tstart, t1, 'text_processors')
+
 
 
 if __name__ == '__main__':
