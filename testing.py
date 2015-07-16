@@ -122,7 +122,6 @@ def test1():
             # SGDClassifier(n_jobs=-1, random_state=42),
             # Perceptron(n_jobs=-1, random_state=42),  # gets some nuances
             # SGDRegressor(random_state=42),
-            LinearSVC(),
             LinearRegression(),# gets some nuances
             LogisticRegression(random_state=42)
         ]
@@ -142,7 +141,7 @@ def test1():
         ])
         raw_scoring(X, y, pipeline)
         t1 = time()
-        sendMessage.doneTextSend(t0, t1, 'text_processors')
+        sendMessage.doneTextSend(t0, t1, 'multiple models')
 
 
 
@@ -203,13 +202,13 @@ def test4():
     y = y.score_lvl_1
 
     parameters = {"max_depth": [3, None],
-                  "max_features": [1, 3, 10],
-                  "min_samples_split": [1, 3, 10],
-                  "min_samples_leaf": [1, 3, 10],
+                #   "max_features": [1, 3, 10],
+                #   "min_samples_split": [1, 3, 10],
+                #   "min_samples_leaf": [1, 3, 10],
                   "bootstrap": [True, False],
                   "criterion": ["gini", "entropy"]}
     clf = RandomForestClassifier(n_jobs=-1)
-    grid_search = GridSearchCV(clf, parameters, verbose=1)
+    grid_search = GridSearchCV(clf, parameters, verbose=5)
     print "Performing grid search..."
     print "parameters:"
     pprint(parameters)
@@ -237,6 +236,6 @@ if __name__ == '__main__':
     #
     # df = make_bins(df)
 
-    test1()
+    test4()
 
     print("{} seconds elapsed".format(time()-t0))
