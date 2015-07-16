@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import data_grab
 from pandas.io.json import json_normalize
-from sklearn.cross_validation import cross_val_score
+from sklearn.cross_validation import cross_val_score, KFold, StratifiedKFold
 import metrics
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import mean_squared_error
@@ -19,6 +19,8 @@ from itertools import combinations
 from pprint import pprint
 import operator
 import sendMessage
+from scipy.sparse import csr_matrix, hstack
+
 
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import SGDClassifier
@@ -36,16 +38,25 @@ from sklearn.svm import LinearSVC
 
 from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
 from sklearn.feature_selection import VarianceThreshold
+from sklearn.cross_validation import cross_val_score
+
+import logging
+LOG_FILENAME = 'testing.log'
+logging.basicConfig(filename=LOG_FILENAME, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
+def logPrint(message):
+    print(message)
+    logger.info(message)
 
 def contest_metric(numpy_array_predictions, numpy_array_actual_values):
     return metrics.weighted_rmsle(numpy_array_predictions, numpy_array_actual_values,
             weights=metrics.KEEPING_IT_CLEAN_WEIGHTS)
 
-def raw_scoring(X, y, pipeline):
+def raw_scoring(X, y, pipeline, rs=42):
     '''since cross_val_score doesn't allow you to round the results beforehand'''
-    xtrain, xtest, ytrain, ytest = train_test_split(X, y, random_state=42)
+    xtrain, xtest, ytrain, ytest = train_test_split(X, y, random_state=rs)
 
     p1 = pipeline.fit(xtrain, ytrain['score_lvl_1']).predict(xtest)
     r1 = np.clip(np.round(p1), 0, np.inf)
@@ -111,19 +122,21 @@ def make_bins(df, bin_size=30):
 def test1():
     '''testing multiple models'''
     # X, y = extract_features(df)
-    # tfidf = joblib.load( 'pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil')
 
     X = joblib.load('pickle_jar/final_matrix')
     y = joblib.load('pickle_jar/final_y')
 
+    tfidf = joblib.load('pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil_hierarchical_dropna')
+    X = hstack([X, tfidf])
+    del tfidf
+
     # set classifiers to test
     estimator_list = [
-            # RandomForestClassifier(n_jobs=-1, random_state=42),
+            RandomForestClassifier(n_jobs=-1, random_state=42),
             # SGDClassifier(n_jobs=-1, random_state=42),
             # Perceptron(n_jobs=-1, random_state=42),  # gets some nuances
             # SGDRegressor(random_state=42),
-            LinearRegression(),# gets some nuances
-            LogisticRegression(random_state=42)
+            # LinearRegression(),# gets some nuances
         ]
 
     for estimator in estimator_list:
@@ -132,16 +145,14 @@ def test1():
         pipeline = Pipeline([
                 # ('low_var_removal', VarianceThreshold()),
                 # ('normalizer', Normalizer()),
-                # ('decomp', TruncatedSVD(n_components=5, random_state=42)),
-                # ('decomp', PCA(n_components=2)),
                 # ('scaler', StandardScaler()),
                 # ('normalizer', Normalizer(norm='l2')), #  for text classification and clustering
                 # ('scaler', StandardScaler(with_mean=False)), #  for sparse matrix
                 ('clf', estimator),
         ])
-        raw_scoring(X, y, pipeline)
-        t1 = time()
-        sendMessage.doneTextSend(t0, t1, 'multiple models')
+        raw_scoring(X, y, pipeline, rs=7)
+
+        sendMessage.doneTextSend(t0, time(), 'multiple models')
 
 
 
@@ -201,7 +212,8 @@ def test4():
 
     y = y.score_lvl_1
 
-    parameters = {"max_depth": [3, None],
+    parameters = {
+                #   "max_depth": [3, None],
                 #   "max_features": [1, 3, 10],
                 #   "min_samples_split": [1, 3, 10],
                 #   "min_samples_leaf": [1, 3, 10],
@@ -226,6 +238,24 @@ def test4():
     sendMessage.doneTextSend(tstart, t1, 'text_processors')
 
 
+def test5():
+    '''crossvalscore on rf full matrix just to confirm'''
+    X = joblib.load('pickle_jar/final_matrix')
+    y = joblib.load('pickle_jar/final_y')
+
+    score_list = ['score_lvl_1', 'score_lvl_2', 'score_lvl_3']
+
+    clf = RandomForestClassifier(n_jobs=-1, random_state=42)
+
+    for i in score_list:
+        # kf = KFold(len(y[i]), shuffle=True)
+        skf = StratifiedKFold(y[i], shuffle=True)
+        scores = cross_val_score(clf, X, y[i], cv=skf, verbose=5)
+        print("Working on {}".format(i))
+        logPrint("{} scores: {}".format(i, scores))
+        logPrint("CV score of {} +/- {}".format(np.mean(scores), np.std(scores)))
+        logPrint('\n')
+
 
 if __name__ == '__main__':
     t0 = time()
@@ -236,6 +266,12 @@ if __name__ == '__main__':
     #
     # df = make_bins(df)
 
-    test4()
+    # testing whether the shuffle parameter fixes cross_val_score
+    # kfold fixed with shuffle. get accuracy for level_1 of .9494
+    # testing with StratifiedKFold just to make sure truly getting good results
+    # test5()
+
+    # testing full matrix combined with full tfidf randomforest
+    test1()
 
     print("{} seconds elapsed".format(time()-t0))
