@@ -191,7 +191,7 @@ def transform_features(df):
     # remove columns that have values without variance or are unnecessary
     df.drop('restaurant_type', axis=1, inplace=True)
     df.drop('review_type', axis=1, inplace=True)
-    df.drop('review_id', axis=1, inplace=True)
+    # df.drop('review_id', axis=1, inplace=True)
     # df.drop('user_name', axis=1, inplace=True)
     df.drop('user_type', axis=1, inplace=True)
     df.drop('restaurant_state', axis=1, inplace=True)
@@ -213,6 +213,14 @@ def transform_features(df):
 
     # convert to datetime object
     df['user_yelping_since'] = pd.to_datetime(pd.Series(df['user_yelping_since']))
+
+    # convert user_yelping_since and user_most_recent_elite_year to deltas
+    df['user_yelping_since_delta'] = (df.review_date - df.user_yelping_since).astype('timedelta64[D]')
+    df.drop('user_yelping_since', axis=1, inplace=True)
+
+    df['user_most_recent_elite_year_delta'] = (df.review_date.dt.year - df.user_most_recent_elite_year)
+    df['user_ever_elite'] = pd.notnull(df.user_most_recent_elite_year_delta)
+    df.drop('user_most_recent_elite_year', axis=1, inplace=True)
 
     # convert to bool type
     print('convert to bool type')
@@ -313,6 +321,10 @@ def transform_features(df):
     df['restaurant_street'] = df['restaurant_full_address'].apply(lambda x: re.search('[A-z].*', x).group() if re.search('[A-z].*', x) is not None else np.nan)
     df['restaurant_zipcode'] = df['restaurant_full_address'].apply(lambda x: re.search('\d+$', x).group() if re.search('\d+$', x) is not None else np.nan)
     # df.drop('restaurant_full_address', axis=1, inplace=True)
+
+    # misc
+    df['review_stars'] = df.review_stars.fillna(0).astype('category')
+    df.restaurant_attributes_price_range = df.restaurant_attributes_price_range.fillna(df.restaurant_attributes_price_range.median())
 
     # fix jacked up text
     print('fix jacked up text')
@@ -421,7 +433,8 @@ def make_flat_version(df):
     # groupby restaurant_id and inspection_date
     g = df[['restaurant_id', 'inspection_date', 'review_text', 'review_date']].groupby(['restaurant_id', 'inspection_date'])
     # remove the reviews that occur after the inspection date and combine reviews for the same restaurant/date
-    texts = g.apply(lambda x: ' '.join(x[x.review_date <= x.inspection_date]['review_text']))
+    # texts = g.apply(lambda x: ' '.join(x[x.review_date <= x.inspection_date]['review_text']))
+    texts = g.review_text.apply(flatten_texts)
     # remove duplicates
     no_dupes = df.drop_duplicates(['restaurant_id', 'inspection_date'])
     no_dupes.set_index(['restaurant_id', 'inspection_date'], inplace=True)
@@ -429,6 +442,12 @@ def make_flat_version(df):
     no_dupes.reset_index(inplace=True)
     print("New shape of {}".format(no_dupes.shape))
     return no_dupes
+
+def flatten_texts(texts):
+    try:
+        return ' '.join(texts)
+    except:
+        return np.nan
 
 
 def post_transformations(df):
@@ -456,7 +475,8 @@ def post_transformations(df):
     # pd.merge resets all the datatypes so doing this instead.
     delta = delta.reset_index()
     delta = delta.rename(columns={'temp_date': 'previous_inspection_delta'})
-    df = pd.concat([df, pd.merge(temp_df, delta, how='left', on=['restaurant_id', 'inspection_date'])['previous_inspection_delta'].dt.days], axis=1)
+    delta.previous_inspection_delta = delta.previous_inspection_delta.dt.days
+    df = pd.concat([df, pd.merge(temp_df, delta, how='left', on=['restaurant_id', 'inspection_date'])['previous_inspection_delta']], axis=1)
 
     # transform inspection date
     df['inspection_year'] = df['inspection_date'].dt.year
@@ -467,8 +487,11 @@ def post_transformations(df):
     df['inspection_dayofyear'] = df['inspection_date'].dt.dayofyear
 
     # remove reviews and tips that occur after an inspection
-    no_future = lambda x: np.nan if x.review_date > x.inspection_date else x.review_text
-    df.review_text = df.apply(no_future, axis=1)
+    no_future_mask = df.review_date > df.inspection_date
+    df.ix[no_future_mask, ['review_date', 'review_id', 'review_stars', 'review_text', 'user_id', 'review_votes_cool', 'review_votes_funny', 'review_votes_useful', 'user_average_stars', 'user_compliments_cool', 'user_compliments_cute', 'user_compliments_funny', 'user_compliments_hot', 'user_compliments_list', 'user_compliments_more', 'user_compliments_note', 'user_compliments_photos', 'user_compliments_plain', 'user_compliments_profile', 'user_compliments_writer', 'user_fans', 'user_name', 'user_review_count', 'user_votes_cool', 'user_votes_funny', 'user_votes_useful', 'review_year', 'review_month', 'review_day', 'review_dayofweek', 'review_quarter', 'review_dayofyear', 'user_yelping_since_delta', 'user_most_recent_elite_year_delta', 'review_delta']] = np.nan
+    # the above is even faster still
+    # no_future = lambda x: np.nan if x.review_date > x.inspection_date else x.review_text
+    # df.review_text = df.apply(no_future, axis=1)
     # the above maintains all the other information. below gets rid of the entire observation and potentially loses non-review related information if a restaurant is left with no reviews.
     # no_future = features_response[features_response.review_date < features_response.inspection_date]
 

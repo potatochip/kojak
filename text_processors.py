@@ -23,7 +23,7 @@ from scipy.sparse import csr_matrix, hstack
 
 
 
-# from vaderSentiment.vaderSentiment import sentiment as vaderSentiment
+from vaderSentiment.vaderSentiment import sentiment as vaderSentiment
 # above breaks ipython print statement so turning it off until needed
 
 stopwords = set(nltk.corpus.stopwords.words('english'))
@@ -61,12 +61,22 @@ def penn_to_wn(tag):
 
 def preprocess_pool(df, filename):
     df.dropna(subset=['review_text'], inplace=True)
+
+    cats = df.review_text.astype('category').cat
+
     pool = Pool()
     # df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text.fillna(''))
-    df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text)
+    # df['preprocessed_review_text'] = pool.map(combine_preprocess, df.review_text)
+    temp = pool.map(combine_preprocess, cats.categories)
     pool.close()
     pool.join()
-    df.drop('review_text', axis=1, inplace=True)
+
+    docs = []
+    for i in cats.codes:
+        docs.append(temp[i])
+    df['preprocessed_review_text'] = docs
+
+    # df.drop('review_text', axis=1, inplace=True)
     df.to_pickle('pickle_jar/'+filename)
     return df
 
@@ -139,7 +149,7 @@ def similarity_matrix():
     joblib.dump(matrix, 'pickle_jar/similarity_matrix')
 
 
-def similarity_pool(df):
+def similarity_pool(df, filename):
     # save processing time since so many duplicate reviews. just process each identical text once through categories
     df = df.dropna(subset=['preprocessed_review_text'])
 
@@ -161,7 +171,7 @@ def similarity_pool(df):
             docs.append(temp[i])
         df[topic] = docs
         print("{} seconds passed".format(time()-t0))
-    df.to_pickle('pickle_jar/similarity_vectors_df')
+    df.to_pickle('pickle_jar/'+filename)
 
 
 def sentiments(text):
@@ -180,12 +190,27 @@ def sentiments(text):
 
 
 def sentiment_pool(df, filename):
+
+    cats = df.review_text.astype('category').cat
+
     pool = Pool()
-    df['sentiment'] = pool.map(sentiments, df.review_text)
-    df['vader'] = pool.map(vader, df.review_text)
+    # df['sentiment'] = pool.map(sentiments, df.review_text)
+    # df['vader'] = pool.map(vader, df.review_text)
+    temp_sentiment = pool.map(sentiments, cats.categories)
+    temp_vader = pool.map(vader, cats.categories)
     pool.close()
     pool.join()
+
     # df.drop('review_text', axis=1, inplace=True)
+
+    sentiment_docs = []
+    vader_docs = []
+    for i in cats.codes:
+        sentiment_docs.append(temp_sentiment[i])
+        vader_docs.append(temp_vader[i])
+    df['sentiment'] = sentiment_docs
+    df['vader'] = vader_docs
+
     df['polarity'] = df.sentiment.apply(lambda x: x if pd.isnull(x) else x[0])
     df['subjectivity'] = df.sentiment.apply(lambda x: x if pd.isnull(x) else x[1])
     df['neg'] = df.vader.apply(lambda x: x if pd.isnull(x) else x['neg'])
@@ -357,18 +382,28 @@ def main():
     # train = data_grab.get_selects('train')
     # prep = preprocess_pool(train, 'preprocessed_review_text_hierarchical_df_dropna')
     # del train
-    # sentiment_pool(train, 'review_text_sentiment_hierarchical_df')
+    # sentiment_pool(prep, 'review_text_sentiment_hierarchical_df')
+
+    # preprocess pivot format review text then create tfidf vector
+    train = pd.read_pickle('pickle_jar/pre-pivot_365')
+    # print('preprocessing')
+    # prep = preprocess_pool(train, 'preprocessed_review_text_pivot')
+    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
+    print('getting sentiment')
+    sentiment_pool(train, 'review_text_sentiment_pivot')
+    del train
 
     # tfidf might be a bit messed up since hierchical is going to make multiples of everything. so places that have more inspection dates are going to end up with reviews that have less weighted text
-    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df_dropna')
+    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df_dropna')
     print('starting tfidf')
-    tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_1mil_hierarchical_dropna')
+    tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_1mil_pivot')
 
     # # create word2vec sentiment vectors
     # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df')
-    # global g_model
-    # g_model = Word2Vec.load_word2vec_format('w2v data/GoogleNews-vectors-negative300.bin.gz', binary=True)
-    # similarity_pool(prep)
+    global g_model
+    g_model = Word2Vec.load_word2vec_format('w2v data/GoogleNews-vectors-negative300.bin.gz', binary=True)
+    print('getting similarity')
+    similarity_pool(prep, 'similarity_vectors_pivot')
 
     # similarity_matrix()
 

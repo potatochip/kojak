@@ -123,12 +123,12 @@ def test1():
     '''testing multiple models'''
     # X, y = extract_features(df)
 
-    X = joblib.load('pickle_jar/final_matrix')
+    X = joblib.load('pickle_jar/final_matrix_no_restaurant_id')
     y = joblib.load('pickle_jar/final_y')
 
-    tfidf = joblib.load('pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil_hierarchical_dropna')
-    X = hstack([X, tfidf])
-    del tfidf
+    # tfidf = joblib.load('pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil_hierarchical_dropna')
+    # X = hstack([X, tfidf])
+    # del tfidf
 
     # set classifiers to test
     estimator_list = [
@@ -249,8 +249,8 @@ def test5():
 
     for i in score_list:
         # kf = KFold(len(y[i]), shuffle=True)
-        skf = StratifiedKFold(y[i], shuffle=True)
-        scores = cross_val_score(clf, X, y[i], cv=skf, verbose=5)
+        skf = StratifiedKFold(y[i], shuffle=True, n_folds=10)
+        scores = cross_val_score(clf, X, y[i], cv=skf, verbose=5,)
         print("Working on {}".format(i))
         logPrint("{} scores: {}".format(i, scores))
         logPrint("CV score of {} +/- {}".format(np.mean(scores), np.std(scores)))
@@ -266,12 +266,13 @@ if __name__ == '__main__':
     #
     # df = make_bins(df)
 
-    # testing whether the shuffle parameter fixes cross_val_score
-    # kfold fixed with shuffle. get accuracy for level_1 of .9494
-    # testing with StratifiedKFold just to make sure truly getting good results
+    #testing with cv folds 10
     # test5()
 
     # testing full matrix combined with full tfidf randomforest
+    # test5()
+
     test1()
+    print("tested final_matrix_no_restaurant_id with no inspection_day etc")
 
     print("{} seconds elapsed".format(time()-t0))
