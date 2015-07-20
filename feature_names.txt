@@ -25,6 +25,7 @@ user_review_count - float64
 user_votes_cool - float64
 user_votes_funny - float64
 user_votes_useful - float64
+user_yelping_since - datetime64[ns]
 restaurant_stars - float64
 restaurant_attributes_accepts_credit_cards - bool
 restaurant_attributes_ages_allowed - category

@@ -123,19 +123,20 @@ def similarity_vector(text):
                 similarities.append(g_model.similarity(topic, word.title()))
             except:
                 pass
-    # keep just the top 100 similar words in reveiw
-    sim_vec = np.array(sorted(similarities, reverse=True)[:100], dtype='float32')
-    # sim_vec = sorted(similarities, reverse=True)[:100]
+    # # keep just the top 100 similar words in reveiw
+    # sim_vec = np.array(sorted(similarities, reverse=True)[:100], dtype='float32')
+    sim_vec = np.array(sorted(similarities, reverse=True), dtype='float32')
     # fill the review with zeroes if its less than 100 words
-    backfill = lambda x: np.append(x, np.zeros((100 - len(x),)))
-    # backfill = lambda x: list(np.append(x, np.zeros((100 - len(x),))))
-    # backfill = lambda x: x + [0]*(100-len(x))
-    return backfill(sim_vec) if len(sim_vec) > 0 else np.nan
+    # backfill = lambda x: np.append(x, np.zeros((100 - len(x),)))
+    # return backfill(sim_vec) if len(sim_vec) > 0 else np.nan
+
+    # trying with just the count of similar words instead of a vector
+    return sim_vec
 
 
 def similarity_matrix():
     df = pd.read_pickle('pickle_jar/similarity_vectors_df')
-    topics = ['supervisor', 'training', 'safety', 'disease', 'ill', 'sick', 'poisoning', 'hygiene', 'raw', 'undercooked', 'cold', 'clean', 'sanitary', 'wash', 'jaundice', 'yellow', 'hazard', 'inspection', 'violation', 'gloves', 'hairnet', 'nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs', 'mold', ]
+    topics = ['supervisor', 'training', 'safety', 'disease', 'ill', 'sick', 'poisoning', 'poison', 'hygiene', 'raw', 'undercooked', 'cold', 'clean', 'sanitary', 'wash', 'jaundice', 'yellow', 'hazard', 'inspection', 'violation', 'gloves', 'hairnet', 'nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'bacteria', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs', 'mold', ]
 
     df = df[['manager']+topics]
     df = df.dropna()
@@ -153,9 +154,9 @@ def similarity_pool(df, filename):
     # save processing time since so many duplicate reviews. just process each identical text once through categories
     df = df.dropna(subset=['preprocessed_review_text'])
 
-    cats = df.preprocessed_review_text.astype('category').cat
+    cats = df.sort(['inspection_id', 'enumerated_review_delta']).preprocessed_review_text.astype('category').cat
 
-    topic_list = ['manager', 'supervisor', 'training', 'safety', 'disease', 'ill', 'sick', 'poisoning', 'hygiene', 'raw', 'undercooked', 'cold', 'clean', 'sanitary', 'wash', 'jaundice', 'yellow', 'hazard', 'inspection', 'violation', 'gloves', 'hairnet', 'nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs', 'mold']
+    topic_list = ['manager', 'supervisor', 'training', 'safety', 'disease', 'ill', 'sick', 'poisoning', 'poison', 'hygiene', 'raw', 'undercooked', 'cold', 'clean', 'sanitary', 'wash', 'jaundice', 'yellow', 'hazard', 'inspection', 'violation', 'gloves', 'hairnet', 'nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'bacteria', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs', 'mold']
     for i in topic_list:
         t0 = time()
         global topic
@@ -341,7 +342,7 @@ def tfidf_text(texts, description, custom_vec=False):
 def tfidf(df, filename):
     vec = TfidfVectorizer(ngram_range=(1,3), lowercase=False, sublinear_tf=True, max_df=0.9, min_df=2, max_features=1000000)
     # texts = df.preprocessed_review_text.replace('', np.nan).dropna()
-    texts = df.preprocessed_review_text
+    texts = df.sort(['inspection_id', 'enumerated_review_delta']).preprocessed_review_text
     print(texts.shape)
     tfidf = vec.fit_transform(texts)
     joblib.dump(tfidf, 'pickle_jar/'+filename)
@@ -385,25 +386,27 @@ def main():
     # sentiment_pool(prep, 'review_text_sentiment_hierarchical_df')
 
     # preprocess pivot format review text then create tfidf vector
-    train = pd.read_pickle('pickle_jar/pre-pivot_365')
+    # train = pd.read_pickle('pickle_jar/pre-pivot_365')
     # print('preprocessing')
     # prep = preprocess_pool(train, 'preprocessed_review_text_pivot')
-    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
-    print('getting sentiment')
-    sentiment_pool(train, 'review_text_sentiment_pivot')
-    del train
+    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
+    # print('getting sentiment')
+    # sentiment_pool(train, 'review_text_sentiment_pivot')
+    # del train
 
     # tfidf might be a bit messed up since hierchical is going to make multiples of everything. so places that have more inspection dates are going to end up with reviews that have less weighted text
     # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df_dropna')
-    print('starting tfidf')
-    tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_1mil_pivot')
+    # print('starting tfidf')
+    # sorted by inspection id and enumerated_review_delta
+    # tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_1mil_pivot_365')
+
 
     # # create word2vec sentiment vectors
-    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df')
+    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
     global g_model
     g_model = Word2Vec.load_word2vec_format('w2v data/GoogleNews-vectors-negative300.bin.gz', binary=True)
     print('getting similarity')
-    similarity_pool(prep, 'similarity_vectors_pivot')
+    similarity_pool(prep, 'similarity_length_pivot')
 
     # similarity_matrix()
 

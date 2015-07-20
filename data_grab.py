@@ -216,7 +216,11 @@ def transform_features(df):
 
     # convert user_yelping_since and user_most_recent_elite_year to deltas
     df['user_yelping_since_delta'] = (df.review_date - df.user_yelping_since).astype('timedelta64[D]')
-    df.drop('user_yelping_since', axis=1, inplace=True)
+    # df.drop('user_yelping_since', axis=1, inplace=True)
+    # some users end up with a negative review. either yelp has a bug, they are obsfurcating for the competition or maybe the yelping_since date changes to their cancellation date or when they resign up. so going if they end up with a negative delta then going to make their earliest review date as their yelping_since date
+    mask = df.user_yelping_since_delta < 0
+    df.ix[mask, 'user_yelping_since_delta'] = (df[mask]['review_date'] - df[mask][['review_date', 'user_id']].groupby('user_id')['review_date'].transform(lambda x: x.min())).astype('timedelta64[D]')
+
 
     df['user_most_recent_elite_year_delta'] = (df.review_date.dt.year - df.user_most_recent_elite_year)
     df['user_ever_elite'] = pd.notnull(df.user_most_recent_elite_year_delta)
@@ -433,6 +437,7 @@ def make_flat_version(df):
     # groupby restaurant_id and inspection_date
     g = df[['restaurant_id', 'inspection_date', 'review_text', 'review_date']].groupby(['restaurant_id', 'inspection_date'])
     # remove the reviews that occur after the inspection date and combine reviews for the same restaurant/date
+    # might not work with new changes to remove future in main hierarchical dataframe
     # texts = g.apply(lambda x: ' '.join(x[x.review_date <= x.inspection_date]['review_text']))
     texts = g.review_text.apply(flatten_texts)
     # remove duplicates
@@ -443,9 +448,9 @@ def make_flat_version(df):
     print("New shape of {}".format(no_dupes.shape))
     return no_dupes
 
-def flatten_texts(texts):
+def flatten_texts(x):
     try:
-        return ' '.join(texts)
+        return ' '.join(x.review_text)
     except:
         return np.nan
 

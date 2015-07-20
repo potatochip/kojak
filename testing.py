@@ -118,39 +118,64 @@ def make_bins(df, bin_size=30):
     df['previous_inspection_delta_bin_codes'] = df.previous_inspection_delta_bin.astype('category').cat.codes
     return df
 
+def log_it(x):
+#     second_min = x[x != x.min()].min()
+#     x.replace(x.min(), second_min/2, inplace=True)
+#     return np.log(x)
+    x = x + 1
+    return np.log(x)
+
+
 
 def test1():
     '''testing multiple models'''
     # X, y = extract_features(df)
 
-    X = joblib.load('pickle_jar/final_matrix_no_restaurant_id')
-    y = joblib.load('pickle_jar/final_y')
+    # X = joblib.load('pickle_jar/final_matrix_no_restaurant_id')
+    # y = joblib.load('pickle_jar/final_y')
 
-    # tfidf = joblib.load('pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil_hierarchical_dropna')
-    # X = hstack([X, tfidf])
-    # del tfidf
+    # combo = pd.read_pickle('pickle_jar/pre-pivot_all_review_combo_365')
+    # df = pd.read_pickle('pickle_jar/pre-pivot_365')
+    df = pd.read_pickle('pickle_jar/pre-pivot_all_non_review')
+
+    tfidf = joblib.load('pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil_pivot')
+
+    scores = ['score_lvl_1', 'score_lvl_2', 'score_lvl_3']
+    y = df[scores]
+
+    from sklearn.decomposition import TruncatedSVD
+    lsa = TruncatedSVD(100)
+    lsa_tfidf = lsa.fit_transform(tfidf)
+
+    # X = hstack([tfidf, log_it(df[['previous_inspection_delta']])])
+    X = np.concatenate([pd.DataFrame(log_it(df.previous_inspection_delta)), lsa_tfidf], axis=1)
 
     # set classifiers to test
     estimator_list = [
-            RandomForestClassifier(n_jobs=-1, random_state=42),
-            # SGDClassifier(n_jobs=-1, random_state=42),
+            SGDClassifier(n_jobs=-1, random_state=42),
             # Perceptron(n_jobs=-1, random_state=42),  # gets some nuances
             # SGDRegressor(random_state=42),
+            # KNeighborsRegressor(),  # gets some nuances
+            # RandomForestClassifier(n_jobs=-1, random_state=42),
             # LinearRegression(),# gets some nuances
+
         ]
 
     for estimator in estimator_list:
         t0 = time()
         print(estimator)
         pipeline = Pipeline([
-                # ('low_var_removal', VarianceThreshold()),
-                # ('normalizer', Normalizer()),
-                # ('scaler', StandardScaler()),
+                # ('zero_variance_removal', VarianceThreshold()),
+                # ('k_best', SelectKBest(score_func=f_classif, k=20)),
+                # ('no_negative', MinMaxScaler()),
                 # ('normalizer', Normalizer(norm='l2')), #  for text classification and clustering
+                # ('normalizer', Normalizer(copy=False)),
+                # ('scaler', StandardScaler()),
                 # ('scaler', StandardScaler(with_mean=False)), #  for sparse matrix
                 ('clf', estimator),
         ])
         raw_scoring(X, y, pipeline, rs=7)
+        print('\n')
 
         sendMessage.doneTextSend(t0, time(), 'multiple models')
 
@@ -273,6 +298,6 @@ if __name__ == '__main__':
     # test5()
 
     test1()
-    print("tested final_matrix_no_restaurant_id with no inspection_day etc")
+    print("testing tfidf with previous_inspection_delta")
 
     print("{} seconds elapsed".format(time()-t0))
