@@ -118,7 +118,7 @@ def trimmed_matrix(dropped):
     music_dum = pd.get_dummies(dropped.restaurant_music)[['dj', 'live']]
     park_dum = pd.get_dummies(dropped.restaurant_parking)['street']
     wifi_dum = pd.get_dummies(dropped.restaurant_attributes_wifi)['no']
-    temp_m = csr_matrix([ambience_dum, alcohol_dum, attire_dum, noise_dum, smoke_dum, music_dum, park_dum, wifi_dum]).T
+    temp_m = np.array(pd.concat([ambience_dum, alcohol_dum, attire_dum, noise_dum, smoke_dum, music_dum, park_dum, wifi_dum], axis=1))
     m = hstack([m, temp_m])
     print(m.shape)
 

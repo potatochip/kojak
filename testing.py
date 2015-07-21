@@ -40,6 +40,8 @@ from sklearn.grid_search import GridSearchCV, RandomizedSearchCV
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.cross_validation import cross_val_score
 
+from sklearn.decomposition import PCA, TruncatedSVD
+
 import logging
 LOG_FILENAME = 'testing.log'
 logging.basicConfig(filename=LOG_FILENAME, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -126,6 +128,77 @@ def log_it(x):
     return np.log(x)
 
 
+def pivot_feature(df, feature, limit=None, decomp='lsa', decomp_features=100, fill='median'):
+    # make the large dataframe faster to handle on pivot
+    temp = df[['inspection_id', 'enumerated_review_delta'] + [feature]]
+
+    # pivot so that each inspection id only has one observation with each review a feature for that observation
+    pivoted_feature = temp.pivot('inspection_id', 'enumerated_review_delta')[feature]
+
+    # pivoting creates a number of empty variables when they have less than the max number of reviews
+    if fill == 'median':
+        fill_empties = lambda x: x.fillna(x.median())
+    elif fill == 'mean':
+        fill_empties = lambda x: x.fillna(x.mean())
+    elif fill == 0:
+        fill_empties = lambda x: x.fillna(0)
+    elif fill == 'inter':
+        fill_empties = lambda x: x.interpolate()
+    else:
+        raise Exception
+
+    pivoted_feature = pivoted_feature.apply(fill_empties, axis=1)
+
+    if decomp == 'lsa':
+        decomposition = TruncatedSVD(decomp_features)
+    elif decomp == 'pca':
+        decomposition = PCA(decomp_features)
+    elif decomp == None:
+        pass
+    else:
+        raise Exception
+
+    if not limit:
+        try:
+            return decomposition.fit_transform(pivoted_feature)
+        except:
+            return pivoted_feature
+    else:
+        try:
+            return decomposition.fit_transform(pivoted_feature)[: , 0:limit]
+        except:
+            return pivoted_feature[[i for i in range(limit)]]
+
+def pivot_test(levels):
+    pool = Pool()
+    score_list = pool.map(pivot_pool, range(1,levels))
+    pool.close()
+    pool.join()
+    for i in ['lsa', 'pca']:
+        global pv_df
+        global pv_feature
+        global pv_score
+        global y
+        X = pivot_feature(pv_df, pv_feature, limit=None, decomp=i)
+        xtrain, xtest, ytrain, ytest = train_test_split(X, y, random_state=42)
+        p = RandomForestClassifier(n_jobs=-1, random_state=42).fit(xtrain, ytrain[pv_score]).predict(xtest)
+        score = accuracy_score(ytest[pv_score], np.clip(np.round(p), 0, np.inf))
+        score_list.append(score)
+    return score_list
+
+def pivot_pool(i):
+    X = pivot_feature(pv_df, pv_feature, limit=i, decomp=None)
+    global y
+    xtrain, xtest, ytrain, ytest = train_test_split(X, y, random_state=42)
+    p = RandomForestClassifier(n_jobs=-1, random_state=42).fit(xtrain, ytrain[pv_score]).predict(xtest)
+    score = accuracy_score(ytest[pv_score], np.clip(np.round(p), 0, np.inf))
+    return score
+
+def sim_length(x):
+    try:
+        return len(np.where(x > 0.6)[0])
+    except:
+        return x
 
 def test1():
     '''testing multiple models'''
@@ -281,6 +354,33 @@ def test5():
         logPrint("CV score of {} +/- {}".format(np.mean(scores), np.std(scores)))
         logPrint('\n')
 
+def test6():
+    combo = pd.read_pickle('pickle_jar/pre-pivot_all_review_combo_365')
+    df = pd.read_pickle('pickle_jar/post-pivot_non_review_data_365')
+
+    sim_length_list = []
+    topics = ['manager', 'supervisor', 'training', 'safety', 'disease', 'ill', 'sick', 'poisoning', 'poison', 'hygiene', 'raw', 'undercooked', 'cold', 'clean', 'sanitary', 'wash', 'jaundice', 'yellow', 'hazard', 'inspection', 'violation', 'gloves', 'hairnet', 'nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'bacteria', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs', 'mold']
+    pbar = ProgressBar(maxval=len(topics)).start()
+    for index, i in enumerate(topics):
+        combo[i] = combo[i].apply(sim_length)
+    #     sim_length_list.append(combo[i].apply(sim_length).tolist())
+        pbar.update(index)
+    pbar.finish()
+
+    flist = ['nails', 'jewelry', 'sneeze', 'cough', 'runny', 'illegal', 'rotten', 'dirty', 'mouse', 'cockroach', 'contaminated', 'gross', 'disgusting', 'stink', 'old', 'parasite', 'bacteria', 'reheat', 'frozen', 'broken', 'drip', 'bathroom', 'toilet', 'leak', 'trash', 'dark', 'lights', 'dust', 'puddle', 'pesticide', 'bugs', 'mold']
+    global pv_df
+    global pv_score
+    pv_df = combo
+    # pv_feature = 'nails'
+    pv_score = 'score_lvl_1'
+    y = df[['score_lvl_1', 'score_lvl_2', 'score_lvl_3']]
+    for i in flist:
+        global pv_feature
+        pv_feature = i
+        score_list = pivot_test(100)
+        indexed = np.argsort(score_list)
+        print("Best level of {} with a score of {} for {}".format(indexed[-1] + 1, np.round(score_list[indexed[-1]], 4), i))
+
 
 if __name__ == '__main__':
     t0 = time()
@@ -297,7 +397,7 @@ if __name__ == '__main__':
     # testing full matrix combined with full tfidf randomforest
     # test5()
 
-    test1()
+    test6()
     print("testing tfidf with previous_inspection_delta")
 
     print("{} seconds elapsed".format(time()-t0))

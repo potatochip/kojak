@@ -20,6 +20,8 @@ from gensim.models import Word2Vec
 import numpy as np
 from sklearn.externals import joblib
 from scipy.sparse import csr_matrix, hstack
+from sklearn.decomposition import TruncatedSVD
+
 
 
 
@@ -340,12 +342,13 @@ def tfidf_text(texts, description, custom_vec=False):
 
 
 def tfidf(df, filename):
-    vec = TfidfVectorizer(ngram_range=(1,3), lowercase=False, sublinear_tf=True, max_df=0.9, min_df=2, max_features=1000000)
+    vec = TfidfVectorizer(ngram_range=(1,3), lowercase=False, sublinear_tf=True, max_df=0.9, min_df=2, max_features=2000000)
     # texts = df.preprocessed_review_text.replace('', np.nan).dropna()
     texts = df.sort(['inspection_id', 'enumerated_review_delta']).preprocessed_review_text
     print(texts.shape)
     tfidf = vec.fit_transform(texts)
     joblib.dump(tfidf, 'pickle_jar/'+filename)
+    return tfidf
 
 
 def load_tfidf_docs(frame='train', description='base'):
@@ -362,6 +365,14 @@ def load_count_docs(frame='train', description='base'):
     elif frame == 'test':
         docs = joblib.load('pickle_jar/count_test_docs_'+description)
     return ('review_bag_of_words', docs)
+
+
+def make_lsa(tfidf, filename):
+    combo = pd.read_pickle('pickle_jar/pre-pivot_all_review_combo_365')
+    lsa = TruncatedSVD(100)
+    lsa_tfidf = lsa.fit_transform(tfidf)
+    tfidf_pivot = pd.concat([combo[['inspection_id', 'enumerated_review_delta']], pd.DataFrame(lsa_tfidf)], axis=1)
+    tfidf_pivot.to_pickle('pickle_jar/'+filename)
 
 
 def main():
@@ -389,24 +400,26 @@ def main():
     # train = pd.read_pickle('pickle_jar/pre-pivot_365')
     # print('preprocessing')
     # prep = preprocess_pool(train, 'preprocessed_review_text_pivot')
-    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
+    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
     # print('getting sentiment')
     # sentiment_pool(train, 'review_text_sentiment_pivot')
     # del train
 
     # tfidf might be a bit messed up since hierchical is going to make multiples of everything. so places that have more inspection dates are going to end up with reviews that have less weighted text
     # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df_dropna')
-    # print('starting tfidf')
+    print('starting tfidf')
     # sorted by inspection id and enumerated_review_delta
-    # tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_1mil_pivot_365')
+    tfidfffs = tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_2mil_pivot_365')
+    # tfidf = joblib.load('pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil_pivot_365')
+    make_lsa(tfidfffs, 'lsa_tfidf_2mil_pivot_365')
 
 
     # # create word2vec sentiment vectors
-    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
-    global g_model
-    g_model = Word2Vec.load_word2vec_format('w2v data/GoogleNews-vectors-negative300.bin.gz', binary=True)
-    print('getting similarity')
-    similarity_pool(prep, 'similarity_length_pivot')
+    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
+    # global g_model
+    # g_model = Word2Vec.load_word2vec_format('w2v data/GoogleNews-vectors-negative300.bin.gz', binary=True)
+    # print('getting similarity')
+    # similarity_pool(prep, 'similarity_length_pivot')
 
     # similarity_matrix()
 
