@@ -369,7 +369,7 @@ def load_count_docs(frame='train', description='base'):
 
 def make_lsa(tfidf, filename):
     combo = pd.read_pickle('pickle_jar/pre-pivot_all_review_combo_365')
-    lsa = TruncatedSVD(100)
+    lsa = TruncatedSVD(100, random_state=42)
     lsa_tfidf = lsa.fit_transform(tfidf)
     tfidf_pivot = pd.concat([combo[['inspection_id', 'enumerated_review_delta']], pd.DataFrame(lsa_tfidf)], axis=1)
     tfidf_pivot.to_pickle('pickle_jar/'+filename)
@@ -398,9 +398,10 @@ def main():
 
     # preprocess pivot format review text then create tfidf vector
     # train = pd.read_pickle('pickle_jar/pre-pivot_365')
+    train = pd.read_pickle('pickle_jar/post-pivot_full_365')
     # print('preprocessing')
-    # prep = preprocess_pool(train, 'preprocessed_review_text_pivot')
-    prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
+    prep = preprocess_pool(train, 'preprocessed_review_text_post_pivot_365')
+    # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_pivot')
     # print('getting sentiment')
     # sentiment_pool(train, 'review_text_sentiment_pivot')
     # del train
@@ -409,9 +410,10 @@ def main():
     # prep = pd.read_pickle('pickle_jar/preprocessed_review_text_hierarchical_df_dropna')
     print('starting tfidf')
     # sorted by inspection id and enumerated_review_delta
-    tfidfffs = tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_2mil_pivot_365')
-    # tfidf = joblib.load('pickle_jar/tfidf_preprocessed_ngram3_sublinear_1mil_pivot_365')
-    make_lsa(tfidfffs, 'lsa_tfidf_2mil_pivot_365')
+    tfidfffs = tfidf(prep, 'tfidf_preprocessed_ngram3_sublinear_2mil_post_pivot_365')
+    # tfidfffs = joblib.load('pickle_jar/tfidf_preprocessed_ngram3_sublinear_2mil_pivot_365')
+    # print('making lsa')
+    # make_lsa(tfidfffs, 'lsa_tfidf_2mil_pivot_365_2c')
 
 
     # # create word2vec sentiment vectors
