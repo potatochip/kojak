@@ -84,7 +84,7 @@ def preprocess_pool(df, filename):
 
 
 def combine_preprocess(text):
-    b = TextBlob(unicode(text, 'utf8').strip())
+    b = TextBlob(unicode(text, 'utf8').strip().lower())
     tags = b.tags
     tokens = map(preprocess, tags)
     tokens = filter(None, tokens)
@@ -98,7 +98,7 @@ def preprocess(tagged):
         l = word.lemmatize(tag)
     else:
         l = ''
-    return l.lower()
+    return l
 
 
 def get_processed_text(df, column, description):
